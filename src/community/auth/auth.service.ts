@@ -3,6 +3,7 @@ import { RegisterAuthDTO } from './dto/register-auth.dto';
 import KeycloakAdminClient from '@keycloak/keycloak-admin-client';
 import { KeycloakAdminService } from 'src/keycloak/admin/keycloak-admin.service';
 import axios from 'axios';
+import { PolicyEnforcementMode, TokenValidation } from 'nest-keycloak-connect';
 
 @Injectable()
 export class AuthService {
@@ -96,16 +97,22 @@ export class AuthService {
   async logout(refresh_token: string) {
     const logoutUrl = `${process.env.KEYCLOAK_URL}/realms/${process.env.KEYCLOAK_REALM}/protocol/openid-connect/logout`;
 
-    await axios.post(
-      logoutUrl,
-      new URLSearchParams({
-        client_id: process.env.KEYCLOAK_CLIENT_ID!,
-        client_secret: process.env.KEYCLOAK_CLIENT_SECRET!,
-        refresh_token: refresh_token,
-      }),
-      { headers: { 'Content-Type': 'application/x-www-form-urlencoded' } },
-    );
+    const params = new URLSearchParams();
+    params.append('client_id', process.env.KEYCLOAK_CLIENT_ID!);
+    params.append('client_secret', process.env.KEYCLOAK_CLIENT_SECRET!);
+    params.append('refresh_token', refresh_token);
+    try {
+      const response = await axios.post(logoutUrl, params, {
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      });
 
-    return { message: 'User logged out successfully' };
+      return { message: 'User logged out successfully', data: response.data };
+    } catch (error) {
+      console.error('Logout error:', error.response?.data || error.message);
+      throw new HttpException(
+        error.response?.data?.error_description || 'Logout failed',
+        HttpStatus.BAD_REQUEST,
+      );
+    }
   }
 }

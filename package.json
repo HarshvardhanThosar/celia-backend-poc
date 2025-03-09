@@ -30,6 +30,7 @@
     "@nestjs/typeorm": "^11.0.0",
     "axios": "^1.8.1",
     "class-validator": "^0.14.1",
+    "expo-server-sdk": "^3.14.0",
     "keycloak-connect": "^26.1.1",
     "mongodb": "^5.9.2",
     "nest-keycloak-connect": "^2.0.0-alpha.1",

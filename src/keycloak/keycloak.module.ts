@@ -17,14 +17,14 @@ import { KeycloakAdminService } from './admin/keycloak-admin.service';
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
-    }), // Loads .env file automatically
+    }),
     KeycloakConnectModule.register({
       authServerUrl: process.env.KEYCLOAK_URL,
       realm: process.env.KEYCLOAK_REALM,
       clientId: process.env.KEYCLOAK_CLIENT_ID,
       secret: process.env.KEYCLOAK_CLIENT_SECRET!,
-      // policyEnforcement: PolicyEnforcementMode.PERMISSIVE,
-      // tokenValidation: TokenValidation.ONLINE,
+      policyEnforcement: PolicyEnforcementMode.PERMISSIVE,
+      tokenValidation: TokenValidation.OFFLINE,
     }),
   ],
   exports: [KeycloakConnectModule, KeycloakAdminService],
