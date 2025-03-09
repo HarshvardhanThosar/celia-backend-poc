@@ -9,7 +9,8 @@ export class KeycloakAdminService {
   constructor() {
     this.keycloakAdmin = new KeycloakAdminClient({
       baseUrl: process.env.KEYCLOAK_URL,
-      realmName: process.env.KEYCLOAK_REALM,
+      // realmName: process.env.KEYCLOAK_REALM,
+      realmName: 'master',
     });
   }
 
@@ -24,22 +25,30 @@ export class KeycloakAdminService {
 
   async register(_register_auth_dto: RegisterAuthDTO) {
     await this.authenticateAdmin();
-    return this.keycloakAdmin.users.create({
-      realm: process.env.KEYCLOAK_REALM,
-      username: _register_auth_dto.username,
-      email: _register_auth_dto.email,
-      firstName: _register_auth_dto.first_name,
-      lastName: _register_auth_dto.last_name,
-      enabled: true,
-      emailVerified: true,
-      credentials: [
-        {
-          type: 'password',
-          value: _register_auth_dto.password,
-          temporary: false,
-        },
-      ],
-    });
+    try {
+      const _response = await this.keycloakAdmin.users.create({
+        realm: process.env.KEYCLOAK_REALM,
+        username: _register_auth_dto.username,
+        email: _register_auth_dto.email,
+        firstName: _register_auth_dto.firstName,
+        lastName: _register_auth_dto.lastName,
+        enabled: true,
+        emailVerified: true,
+        credentials: [
+          {
+            type: 'password',
+            value: _register_auth_dto.password,
+            temporary: false,
+          },
+        ],
+      });
+      return _response;
+    } catch (error) {
+      throw {
+        statusCode: error?.response?.status || 500,
+        message: `${error.message || JSON.stringify(error.response?.data)}`,
+      };
+    }
   }
 
   async assignRole(userId: string, roleName: string) {
