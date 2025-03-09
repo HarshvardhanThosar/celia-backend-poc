@@ -6,9 +6,13 @@ import { Notification } from './entities/notification.entity';
 import { PushTokenService } from './push-token.service';
 import { PushToken } from './entities/push-token.entity';
 import { PushTokenController } from './push-token.controller';
+import { KeycloakModule } from 'src/keycloak/keycloak.module';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Notification, PushToken])],
+  imports: [
+    TypeOrmModule.forFeature([Notification, PushToken]),
+    KeycloakModule,
+  ],
   controllers: [NotificationsController, PushTokenController],
   providers: [NotificationsService, PushTokenService],
   exports: [NotificationsService],
