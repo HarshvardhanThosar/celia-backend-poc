@@ -7,6 +7,7 @@ import { CommunityModule } from './community/community.module';
 import { NotificationsModule } from './notifications/notifications.module';
 import { RouterModule } from '@nestjs/core';
 import { AuthModule } from './community/auth/auth.module';
+import { ProfileModule } from './community/profile/profile.module';
 
 @Module({
   imports: [
@@ -18,6 +19,10 @@ import { AuthModule } from './community/auth/auth.module';
           {
             path: '/',
             module: AuthModule,
+          },
+          {
+            path: '/',
+            module: ProfileModule,
           },
         ],
       },

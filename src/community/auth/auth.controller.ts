@@ -57,7 +57,6 @@ export class AuthController {
 
   @Post('refresh')
   @HttpCode(HttpStatus.OK)
-  @UseGuards(AuthGuard)
   @ApiBearerAuth()
   async refresh(
     @KeycloakUser() user,
@@ -80,7 +79,6 @@ export class AuthController {
 
   @Post('logout')
   @HttpCode(HttpStatus.OK)
-  @UseGuards(AuthGuard)
   @ApiBearerAuth()
   async logout(@Body() log_out_dto: LogoutAuthDTO) {
     try {

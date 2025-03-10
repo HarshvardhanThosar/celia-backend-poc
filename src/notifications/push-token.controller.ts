@@ -24,7 +24,6 @@ export class PushTokenController {
     @KeycloakUser() user,
     @Body() token_data: RegisterPushTokenDTO,
   ) {
-    console.log(token_data);
     return this.push_service.register_push_token(
       user.sub,
       token_data.push_token,

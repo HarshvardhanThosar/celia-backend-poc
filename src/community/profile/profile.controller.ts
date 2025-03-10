@@ -25,6 +25,8 @@ export class ProfileController {
    */
   @Get()
   @HttpCode(HttpStatus.OK)
+  @UseGuards(AuthGuard)
+  @ApiBearerAuth()
   async get_profile(@KeycloakUser() user) {
     try {
       const _profile = await this.profile_service.get_profile(user.sub);
@@ -43,6 +45,8 @@ export class ProfileController {
    */
   @Put()
   @HttpCode(HttpStatus.OK)
+  @UseGuards(AuthGuard)
+  @ApiBearerAuth()
   async update_profile(
     @KeycloakUser() user,
     @Body() update_profile_dto: UpdateProfileDTO,

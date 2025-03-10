@@ -25,7 +25,7 @@ export class ProfileService {
 
   async get_profile(user_id: string): Promise<Profile> {
     const profile = await this.profile_repository.findOne({
-      where: { id: user_id },
+      where: { _id: user_id },
     });
     if (!profile) {
       throw new NotFoundException(`Profile not found for user ID: ${user_id}`);
@@ -39,7 +39,7 @@ export class ProfileService {
   ): Promise<Profile> {
     const { profile_image } = profile_data;
     const profile = await this.profile_repository.findOne({
-      where: { id: user_id },
+      where: { _id: user_id },
     });
 
     if (!profile) {
