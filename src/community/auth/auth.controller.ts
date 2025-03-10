@@ -15,6 +15,7 @@ import { RefreshAuthDTO } from './dto/refresh-auth.dto';
 import {} from 'nest-keycloak-connect';
 import { ApiBearerAuth } from '@nestjs/swagger';
 import { LogoutAuthDTO } from './dto/logout-auth.dto';
+import { KeycloakAuthUser } from 'src/keycloak/types/user';
 
 @Controller('auth')
 export class AuthController {
@@ -59,7 +60,7 @@ export class AuthController {
   @HttpCode(HttpStatus.OK)
   @ApiBearerAuth()
   async refresh(
-    @KeycloakUser() user,
+    @KeycloakUser() user: KeycloakAuthUser,
     @Body() _refresh_auth_dto: RefreshAuthDTO,
   ) {
     try {

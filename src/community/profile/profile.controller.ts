@@ -2,20 +2,18 @@ import {
   Controller,
   Get,
   Put,
-  Post,
   Body,
   HttpStatus,
   HttpException,
   HttpCode,
-  UseGuards,
 } from '@nestjs/common';
 import { ProfileService } from './profile.service';
-import { AuthGuard, KeycloakUser } from 'nest-keycloak-connect';
+import { KeycloakUser } from 'nest-keycloak-connect';
 import { ApiBearerAuth } from '@nestjs/swagger';
 import { UpdateProfileDTO } from './dto/update-profile.dto';
+import { KeycloakAuthUser } from 'src/keycloak/types/user';
 
 @Controller('profile')
-@UseGuards(AuthGuard)
 @ApiBearerAuth()
 export class ProfileController {
   constructor(private readonly profile_service: ProfileService) {}
@@ -25,18 +23,18 @@ export class ProfileController {
    */
   @Get()
   @HttpCode(HttpStatus.OK)
-  @UseGuards(AuthGuard)
   @ApiBearerAuth()
-  async get_profile(@KeycloakUser() user) {
+  async get_profile(@KeycloakUser() user: KeycloakAuthUser) {
     try {
+      console.log(user);
       const _profile = await this.profile_service.get_profile(user.sub);
       return {
         message: 'Profile retrieved successfully!',
-        data: _profile,
+        data: { ..._profile, ...user },
         statusCode: HttpStatus.OK,
       };
     } catch (error) {
-      throw new HttpException(error.message, HttpStatus.NOT_FOUND);
+      throw new HttpException(error?.message, HttpStatus.NOT_FOUND);
     }
   }
 
@@ -45,10 +43,9 @@ export class ProfileController {
    */
   @Put()
   @HttpCode(HttpStatus.OK)
-  @UseGuards(AuthGuard)
   @ApiBearerAuth()
   async update_profile(
-    @KeycloakUser() user,
+    @KeycloakUser() user: KeycloakAuthUser,
     @Body() update_profile_dto: UpdateProfileDTO,
   ) {
     try {
@@ -61,7 +58,7 @@ export class ProfileController {
         statusCode: HttpStatus.OK,
       };
     } catch (error) {
-      throw new HttpException(error.message, HttpStatus.BAD_REQUEST);
+      throw new HttpException(error?.message, HttpStatus.BAD_REQUEST);
     }
   }
 }

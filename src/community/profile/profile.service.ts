@@ -3,6 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { MongoRepository } from 'typeorm';
 import { Profile } from './entities/profile.entity';
 import { UpdateProfileDTO } from './dto/update-profile.dto';
+import { UserID } from 'src/keycloak/types/user';
 
 @Injectable()
 export class ProfileService {
@@ -11,7 +12,7 @@ export class ProfileService {
     private readonly profile_repository: MongoRepository<Profile>,
   ) {}
 
-  async create_profile(user_id: string): Promise<Profile> {
+  async create_profile(user_id: UserID): Promise<Profile> {
     const profile = this.profile_repository.create({
       id: user_id,
       score: 0,
@@ -23,7 +24,7 @@ export class ProfileService {
     return await this.profile_repository.save(profile);
   }
 
-  async get_profile(user_id: string): Promise<Profile> {
+  async get_profile(user_id: UserID): Promise<Profile> {
     const profile = await this.profile_repository.findOne({
       where: { _id: user_id },
     });
@@ -34,7 +35,7 @@ export class ProfileService {
   }
 
   async update_profile(
-    user_id: string,
+    user_id: UserID,
     profile_data: UpdateProfileDTO,
   ): Promise<Profile> {
     const { profile_image } = profile_data;
@@ -49,7 +50,7 @@ export class ProfileService {
     return await this.profile_repository.save(profile);
   }
   async add_task_participation(
-    user_id: string,
+    user_id: UserID,
     task_id: string,
   ): Promise<void> {
     await this.profile_repository.updateOne(
@@ -60,7 +61,7 @@ export class ProfileService {
     );
   }
 
-  async add_task_creation(user_id: string, task_id: string): Promise<void> {
+  async add_task_creation(user_id: UserID, task_id: string): Promise<void> {
     await this.profile_repository.updateOne(
       { id: user_id },
       {

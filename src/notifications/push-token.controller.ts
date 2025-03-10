@@ -5,12 +5,12 @@ import {
   HttpCode,
   HttpStatus,
   Post,
-  UseGuards,
 } from '@nestjs/common';
-import { AuthGuard, KeycloakUser } from 'nest-keycloak-connect';
+import { KeycloakUser } from 'nest-keycloak-connect';
 import { PushTokenService } from './push-token.service';
 import { RegisterPushTokenDTO } from './dto/register-push-token.dto';
 import { ApiBearerAuth } from '@nestjs/swagger';
+import { KeycloakAuthUser } from 'src/keycloak/types/user';
 
 @Controller('push-token')
 export class PushTokenController {
@@ -18,10 +18,9 @@ export class PushTokenController {
 
   @Post('register')
   @HttpCode(HttpStatus.OK)
-  @UseGuards(AuthGuard)
   @ApiBearerAuth()
   async register_push_token(
-    @KeycloakUser() user,
+    @KeycloakUser() user: KeycloakAuthUser,
     @Body() token_data: RegisterPushTokenDTO,
   ) {
     return this.push_service.register_push_token(
@@ -31,7 +30,7 @@ export class PushTokenController {
   }
 
   @Delete('remove')
-  async delete_user_push_token(@KeycloakUser() user) {
+  async delete_user_push_token(@KeycloakUser() user: KeycloakAuthUser) {
     return this.push_service.delete_user_push_token(user.sub);
   }
 }

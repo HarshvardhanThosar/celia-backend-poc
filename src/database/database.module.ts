@@ -12,17 +12,18 @@ import { PushToken } from 'src/notifications/entities/push-token.entity';
     TypeOrmModule.forRootAsync({
       imports: [ConfigModule],
       inject: [ConfigService],
-      useFactory: async (configService: ConfigService) => ({
-        type: 'mongodb',
-        url: `mongodb+srv://${configService.get('MONGO_USERNAME')}:${configService.get(
-          'MONGO_PASSWORD',
-        )}@${configService.get('MONGO_HOST')}/?retryWrites=true&w=majority&appName=${configService.get(
-          'MONGO_CLUSTER',
-        )}`,
-        database: configService.get('MONGO_DATABASE'),
-        entities: [PushToken, Profile],
-        synchronize: true,
-      }),
+      useFactory: async (configService: ConfigService) =>
+        await {
+          type: 'mongodb',
+          url: `mongodb+srv://${configService.get('MONGO_USERNAME')}:${configService.get(
+            'MONGO_PASSWORD',
+          )}@${configService.get('MONGO_HOST')}/?retryWrites=true&w=majority&appName=${configService.get(
+            'MONGO_CLUSTER',
+          )}`,
+          database: configService.get('MONGO_DATABASE'),
+          entities: [PushToken, Profile],
+          synchronize: true,
+        },
     }),
   ],
 })

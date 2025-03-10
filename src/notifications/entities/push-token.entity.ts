@@ -1,3 +1,4 @@
+import { UserID } from 'src/keycloak/types/user';
 import { Entity, ObjectIdColumn, Column } from 'typeorm';
 
 @Entity('push_tokens')
@@ -6,7 +7,7 @@ export class PushToken {
   id: string;
 
   @Column()
-  user_id: string;
+  user_id: UserID;
 
   @Column()
   push_token: string;

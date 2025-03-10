@@ -1,8 +1,9 @@
 import { Injectable } from '@nestjs/common';
-import Expo from 'expo-server-sdk';
+// import Expo from 'expo-server-sdk';
 import { PushToken } from './entities/push-token.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
+import { UserID } from 'src/keycloak/types/user';
 
 @Injectable()
 export class PushTokenService {
@@ -15,7 +16,7 @@ export class PushTokenService {
   //     this.expo = new Expo();
   //   }
 
-  //   async sendNotificationToUser(user_id: string, title: string, body: string) {
+  //   async sendNotificationToUser(user_id: UserID, title: string, body: string) {
   //     const user_token = await this.pushTokenRepository.findOne({
   //       where: { user_id },
   //     });
@@ -47,7 +48,7 @@ export class PushTokenService {
     private readonly pushTokenRepository: Repository<PushToken>,
   ) {}
 
-  async register_push_token(user_id: string, push_token: string) {
+  async register_push_token(user_id: UserID, push_token: string) {
     const existingToken = await this.pushTokenRepository.findOne({
       where: { user_id },
     });
@@ -66,11 +67,11 @@ export class PushTokenService {
     return { message: 'Push token registered successfully!' };
   }
 
-  async get_user_push_token(user_id: string) {
+  async get_user_push_token(user_id: UserID) {
     return await this.pushTokenRepository.findOne({ where: { user_id } });
   }
 
-  async delete_user_push_token(user_id: string) {
+  async delete_user_push_token(user_id: UserID) {
     return await this.pushTokenRepository.delete({ user_id });
   }
 }
