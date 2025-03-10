@@ -1,1 +1,1 @@
-export class CreateTaskDto {}
+export class CreateTaskDTO {}

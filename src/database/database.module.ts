@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { Profile } from 'src/community/profile/entities/profile.entity';
 import { PushToken } from 'src/notifications/entities/push-token.entity';
 
 @Module({
@@ -19,7 +20,7 @@ import { PushToken } from 'src/notifications/entities/push-token.entity';
           'MONGO_CLUSTER',
         )}`,
         database: configService.get('MONGO_DATABASE'),
-        entities: [PushToken],
+        entities: [PushToken, Profile],
         synchronize: true,
       }),
     }),

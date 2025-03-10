@@ -1,7 +1,7 @@
 import NotificationBody from '../types/NotificationBody';
 import NotificationType from '../types/NotificationTypes';
 
-export class CreateNotificationDto {
+export class CreateNotificationDTO {
   push_token: string;
   notification_type: NotificationType;
   title: string;

@@ -1,1 +1,1 @@
-export class CreateRetailDto {}
+export class CreateRetailDTO {}

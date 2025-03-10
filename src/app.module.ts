@@ -5,9 +5,28 @@ import { DatabaseModule } from './database/database.module';
 import { KeycloakModule } from './keycloak/keycloak.module';
 import { CommunityModule } from './community/community.module';
 import { NotificationsModule } from './notifications/notifications.module';
+import { RouterModule } from '@nestjs/core';
+import { AuthModule } from './community/auth/auth.module';
 
 @Module({
-  imports: [DatabaseModule, KeycloakModule, CommunityModule, NotificationsModule],
+  imports: [
+    RouterModule.register([
+      {
+        path: 'community',
+        module: CommunityModule,
+        children: [
+          {
+            path: '/',
+            module: AuthModule,
+          },
+        ],
+      },
+    ]),
+    DatabaseModule,
+    KeycloakModule,
+    CommunityModule,
+    NotificationsModule,
+  ],
   controllers: [AppController],
   providers: [AppService],
 })

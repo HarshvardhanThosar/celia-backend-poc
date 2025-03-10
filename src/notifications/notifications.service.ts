@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { CreateNotificationDto } from './dto/create-notification.dto';
+import { CreateNotificationDTO } from './dto/create-notification.dto';
 import Expo from 'expo-server-sdk';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
@@ -16,7 +16,7 @@ export class NotificationsService {
     this.expo = new Expo();
   }
 
-  create(_create_notification_dto: CreateNotificationDto) {
+  create(_create_notification_dto: CreateNotificationDTO) {
     return 'This action adds a new notification';
   }
 }

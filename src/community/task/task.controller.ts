@@ -8,16 +8,16 @@ import {
   Delete,
 } from '@nestjs/common';
 import { TaskService } from './task.service';
-import { CreateTaskDto } from './dto/create-task.dto';
-import { UpdateTaskDto } from './dto/update-task.dto';
+import { CreateTaskDTO } from './dto/create-task.dto';
+import { UpdateTaskDTO } from './dto/update-task.dto';
 
 @Controller('community/task')
 export class TaskController {
   constructor(private readonly taskService: TaskService) {}
 
   @Post()
-  create(@Body() createTaskDto: CreateTaskDto) {
-    return this.taskService.create(createTaskDto);
+  create(@Body() createTaskDTO: CreateTaskDTO) {
+    return this.taskService.create(createTaskDTO);
   }
 
   @Get()
@@ -31,8 +31,8 @@ export class TaskController {
   }
 
   @Patch(':id')
-  update(@Param('id') id: string, @Body() updateTaskDto: UpdateTaskDto) {
-    return this.taskService.update(+id, updateTaskDto);
+  update(@Param('id') id: string, @Body() updateTaskDTO: UpdateTaskDTO) {
+    return this.taskService.update(+id, updateTaskDTO);
   }
 
   @Delete(':id')

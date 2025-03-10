@@ -8,16 +8,16 @@ import {
   Delete,
 } from '@nestjs/common';
 import { RetailService } from './retail.service';
-import { CreateRetailDto } from './dto/create-retail.dto';
-import { UpdateRetailDto } from './dto/update-retail.dto';
+import { CreateRetailDTO } from './dto/create-retail.dto';
+import { UpdateRetailDTO } from './dto/update-retail.dto';
 
 @Controller('community/retail')
 export class RetailController {
   constructor(private readonly retailService: RetailService) {}
 
   @Post()
-  create(@Body() createRetailDto: CreateRetailDto) {
-    return this.retailService.create(createRetailDto);
+  create(@Body() createRetailDTO: CreateRetailDTO) {
+    return this.retailService.create(createRetailDTO);
   }
 
   @Get()
@@ -31,8 +31,8 @@ export class RetailController {
   }
 
   @Patch(':id')
-  update(@Param('id') id: string, @Body() updateRetailDto: UpdateRetailDto) {
-    return this.retailService.update(+id, updateRetailDto);
+  update(@Param('id') id: string, @Body() updateRetailDTO: UpdateRetailDTO) {
+    return this.retailService.update(+id, updateRetailDTO);
   }
 
   @Delete(':id')

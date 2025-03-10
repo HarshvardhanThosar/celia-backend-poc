@@ -1,26 +1,71 @@
-import { Injectable } from '@nestjs/common';
-import { CreateProfileDto } from './dto/create-profile.dto';
-import { UpdateProfileDto } from './dto/update-profile.dto';
+import { Injectable, NotFoundException } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { MongoRepository } from 'typeorm';
+import { Profile } from './entities/profile.entity';
+import { UpdateProfileDTO } from './dto/update-profile.dto';
 
 @Injectable()
 export class ProfileService {
-  create(createProfileDto: CreateProfileDto) {
-    return 'This action adds a new profile';
+  constructor(
+    @InjectRepository(Profile)
+    private readonly profile_repository: MongoRepository<Profile>,
+  ) {}
+
+  async create_profile(user_id: string): Promise<Profile> {
+    const profile = this.profile_repository.create({
+      id: user_id,
+      score: 0,
+      coupons: [],
+      tasks_participated: [],
+      tasks_created: [],
+      profile_image: undefined,
+    });
+    return await this.profile_repository.save(profile);
   }
 
-  findAll() {
-    return `This action returns all profile`;
+  async get_profile(user_id: string): Promise<Profile> {
+    const profile = await this.profile_repository.findOne({
+      where: { id: user_id },
+    });
+    if (!profile) {
+      throw new NotFoundException(`Profile not found for user ID: ${user_id}`);
+    }
+    return profile;
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} profile`;
+  async update_profile(
+    user_id: string,
+    profile_data: UpdateProfileDTO,
+  ): Promise<Profile> {
+    const { profile_image } = profile_data;
+    const profile = await this.profile_repository.findOne({
+      where: { id: user_id },
+    });
+
+    if (!profile) {
+      throw new Error('Profile not found');
+    }
+    if (profile_image) profile.profile_image = profile_image;
+    return await this.profile_repository.save(profile);
+  }
+  async add_task_participation(
+    user_id: string,
+    task_id: string,
+  ): Promise<void> {
+    await this.profile_repository.updateOne(
+      { id: user_id },
+      {
+        $addToSet: { tasks_participated: task_id } as any,
+      },
+    );
   }
 
-  update(id: number, updateProfileDto: UpdateProfileDto) {
-    return `This action updates a #${id} profile`;
-  }
-
-  remove(id: number) {
-    return `This action removes a #${id} profile`;
+  async add_task_creation(user_id: string, task_id: string): Promise<void> {
+    await this.profile_repository.updateOne(
+      { id: user_id },
+      {
+        $addToSet: { tasks_created: task_id } as any,
+      },
+    );
   }
 }
