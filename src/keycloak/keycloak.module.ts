@@ -27,7 +27,6 @@ import { KeycloakAdminService } from './admin/keycloak-admin.service';
       tokenValidation: TokenValidation.OFFLINE,
     }),
   ],
-  exports: [KeycloakConnectModule, KeycloakAdminService],
   providers: [
     {
       provide: APP_GUARD,
@@ -43,5 +42,6 @@ import { KeycloakAdminService } from './admin/keycloak-admin.service';
     },
     KeycloakAdminService,
   ],
+  exports: [KeycloakConnectModule, KeycloakAdminService],
 })
 export class KeycloakModule {}

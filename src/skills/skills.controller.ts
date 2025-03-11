@@ -6,6 +6,8 @@ import {
   Delete,
   Body,
   Param,
+  HttpCode,
+  HttpStatus,
 } from '@nestjs/common';
 import { CreateSkillDTO } from './dto/create-skill.dto';
 import { UpdateSkillDTO } from './dto/update-skill.dto';
@@ -18,12 +20,14 @@ export class SkillController {
   constructor(private readonly skill_service: SkillService) {}
 
   @Get()
+  @HttpCode(HttpStatus.OK)
   @ApiBearerAuth()
   async get_all_skills() {
     return this.skill_service.get_all_skills();
   }
 
   @Get(':skill_id')
+  @HttpCode(HttpStatus.OK)
   @ApiBearerAuth()
   async get_skill_by_id(@Param('skill_id') skill_id: string) {
     return this.skill_service.get_skill_by_id(skill_id);
@@ -31,6 +35,7 @@ export class SkillController {
 
   @Post()
   @Roles('admin')
+  @HttpCode(HttpStatus.CREATED)
   @ApiBearerAuth()
   async create_skill(@Body() create_skill_dto: CreateSkillDTO) {
     return this.skill_service.create_skill(create_skill_dto);
@@ -38,6 +43,7 @@ export class SkillController {
 
   @Patch(':skill_id')
   @Roles('admin')
+  @HttpCode(HttpStatus.OK)
   @ApiBearerAuth()
   async updateSkill(
     @Param('skill_id') skill_id: string,
@@ -48,6 +54,7 @@ export class SkillController {
 
   @Delete(':skill_id')
   @Roles('admin')
+  @HttpCode(HttpStatus.NO_CONTENT)
   @ApiBearerAuth()
   async deleteSkill(@Param('skill_id') skill_id: string) {
     return this.skill_service.deleteSkill(skill_id);

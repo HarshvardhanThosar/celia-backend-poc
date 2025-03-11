@@ -10,8 +10,8 @@ import { AuthModule } from './community/auth/auth.module';
 import { ProfileModule } from './community/profile/profile.module';
 import { SkillsModule } from './skills/skills.module';
 import { TaskTypesModule } from './task_types/task_types.module';
-import { MasterService } from './master/master.service';
 import { MasterModule } from './master/master.module';
+import { TasksModule } from './community/tasks/tasks.module';
 
 @Module({
   imports: [
@@ -28,6 +28,10 @@ import { MasterModule } from './master/master.module';
             path: '/',
             module: ProfileModule,
           },
+          {
+            path: '/',
+            module: TasksModule,
+          },
         ],
       },
     ]),
@@ -41,5 +45,6 @@ import { MasterModule } from './master/master.module';
   ],
   controllers: [AppController],
   providers: [AppService],
+  exports: [AppService],
 })
 export class AppModule {}

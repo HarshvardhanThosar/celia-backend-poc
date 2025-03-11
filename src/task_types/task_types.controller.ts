@@ -6,6 +6,8 @@ import {
   Delete,
   Body,
   Param,
+  HttpCode,
+  HttpStatus,
 } from '@nestjs/common';
 import { TaskTypesService } from './task_types.service';
 import { CreateTaskTypeDTO } from './dto/create-task_type.dto';
@@ -18,12 +20,14 @@ export class TaskTypesController {
   constructor(private readonly TaskTypesService: TaskTypesService) {}
 
   @Get()
+  @HttpCode(HttpStatus.OK)
   @ApiBearerAuth()
   async getAllTaskTypes() {
     return this.TaskTypesService.get_all_task_types();
   }
 
   @Get(':task_type_id')
+  @HttpCode(HttpStatus.OK)
   @ApiBearerAuth()
   async getTaskTypeById(@Param('task_type_id') task_type_id: string) {
     return this.TaskTypesService.get_task_type_by_id(task_type_id);
@@ -31,6 +35,7 @@ export class TaskTypesController {
 
   @Post()
   @Roles('admin')
+  @HttpCode(HttpStatus.CREATED)
   @ApiBearerAuth()
   async createTaskType(@Body() createTaskTypeDTO: CreateTaskTypeDTO) {
     return this.TaskTypesService.create_task_type(createTaskTypeDTO);
@@ -38,6 +43,7 @@ export class TaskTypesController {
 
   @Patch(':task_type_id')
   @Roles('admin')
+  @HttpCode(HttpStatus.OK)
   @ApiBearerAuth()
   async updateTaskType(
     @Param('task_type_id') task_type_id: string,
@@ -51,6 +57,7 @@ export class TaskTypesController {
 
   @Delete(':task_type_id')
   @Roles('admin')
+  @HttpCode(HttpStatus.NO_CONTENT)
   @ApiBearerAuth()
   async deleteTaskType(@Param('task_type_id') task_type_id: string) {
     return this.TaskTypesService.delete_task_type(task_type_id);

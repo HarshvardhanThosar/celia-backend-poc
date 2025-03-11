@@ -30,6 +30,8 @@ export class PushTokenController {
   }
 
   @Delete('remove')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  @ApiBearerAuth()
   async delete_user_push_token(@KeycloakUser() user: KeycloakAuthUser) {
     return this.push_service.delete_user_push_token(user.sub);
   }

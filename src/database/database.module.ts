@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { Profile } from 'src/community/profile/entities/profile.entity';
+import { Task } from 'src/community/tasks/entities/task.entity';
 import { PushToken } from 'src/notifications/entities/push-token.entity';
 import { Skill } from 'src/skills/entities/skill.entity';
 import { TaskType } from 'src/task_types/entities/task_type.entity';
@@ -23,7 +24,7 @@ import { TaskType } from 'src/task_types/entities/task_type.entity';
             'MONGO_CLUSTER',
           )}`,
           database: configService.get('MONGO_DATABASE'),
-          entities: [PushToken, Profile, Skill, TaskType],
+          entities: [PushToken, Profile, Skill, TaskType, Task],
           synchronize: false,
           autoLoadEntities: true,
         },

@@ -7,5 +7,6 @@ import { KeycloakModule } from 'src/keycloak/keycloak.module';
   imports: [KeycloakModule],
   controllers: [AuthController],
   providers: [AuthService],
+  exports: [AuthService],
 })
 export class AuthModule {}
