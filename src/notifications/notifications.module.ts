@@ -9,10 +9,7 @@ import { PushTokenController } from './push-token.controller';
 import { KeycloakModule } from 'src/keycloak/keycloak.module';
 
 @Module({
-  imports: [
-    TypeOrmModule.forFeature([Notification, PushToken]),
-    KeycloakModule,
-  ],
+  imports: [TypeOrmModule.forFeature([Notification, PushToken])],
   controllers: [NotificationsController, PushTokenController],
   providers: [NotificationsService, PushTokenService],
   exports: [NotificationsService],

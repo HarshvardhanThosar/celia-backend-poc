@@ -4,7 +4,7 @@ import { Entity, ObjectIdColumn, Column } from 'typeorm';
 @Entity('push_tokens')
 export class PushToken {
   @ObjectIdColumn()
-  id: string;
+  _id: string;
 
   @Column()
   user_id: UserID;

@@ -8,6 +8,7 @@ import { NotificationsModule } from './notifications/notifications.module';
 import { RouterModule } from '@nestjs/core';
 import { AuthModule } from './community/auth/auth.module';
 import { ProfileModule } from './community/profile/profile.module';
+import { SkillsModule } from './skills/skills.module';
 
 @Module({
   imports: [
@@ -31,6 +32,7 @@ import { ProfileModule } from './community/profile/profile.module';
     KeycloakModule,
     CommunityModule,
     NotificationsModule,
+    SkillsModule,
   ],
   controllers: [AppController],
   providers: [AppService],

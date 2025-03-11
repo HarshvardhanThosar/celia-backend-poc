@@ -14,7 +14,7 @@ export class ProfileService {
 
   async create_profile(user_id: UserID): Promise<Profile> {
     const profile = this.profile_repository.create({
-      id: user_id,
+      _id: user_id,
       score: 0,
       coupons: [],
       tasks_participated: [],
@@ -54,7 +54,7 @@ export class ProfileService {
     task_id: string,
   ): Promise<void> {
     await this.profile_repository.updateOne(
-      { id: user_id },
+      { _id: user_id },
       {
         $addToSet: { tasks_participated: task_id } as any,
       },
@@ -63,7 +63,7 @@ export class ProfileService {
 
   async add_task_creation(user_id: UserID, task_id: string): Promise<void> {
     await this.profile_repository.updateOne(
-      { id: user_id },
+      { _id: user_id },
       {
         $addToSet: { tasks_created: task_id } as any,
       },

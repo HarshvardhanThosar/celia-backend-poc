@@ -14,7 +14,7 @@ export class KeycloakAdminService {
     });
   }
 
-  async authenticateAdmin() {
+  async authenticate_admin() {
     await this.keycloakAdmin.auth({
       grantType: 'password',
       clientId: 'admin-cli',
@@ -24,7 +24,7 @@ export class KeycloakAdminService {
   }
 
   async register(_register_auth_dto: RegisterAuthDTO) {
-    await this.authenticateAdmin();
+    await this.authenticate_admin();
     try {
       const _response = await this.keycloakAdmin.users.create({
         realm: process.env.KEYCLOAK_REALM,
@@ -51,8 +51,8 @@ export class KeycloakAdminService {
     }
   }
 
-  async assignRole(userId: string, roleName: string) {
-    await this.authenticateAdmin();
+  async assign_role(userId: string, roleName: string) {
+    await this.authenticate_admin();
     const roles = await this.keycloakAdmin.roles.find({
       realm: process.env.KEYCLOAK_REALM,
     });

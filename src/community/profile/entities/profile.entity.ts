@@ -3,7 +3,7 @@ import { Entity, Column, ObjectIdColumn } from 'typeorm';
 @Entity('profiles')
 export class Profile {
   @ObjectIdColumn()
-  id: string;
+  _id: string;
 
   @Column({ default: 0 })
   score: number;

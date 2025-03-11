@@ -3,7 +3,7 @@ import { Entity, ObjectIdColumn, Column } from 'typeorm';
 @Entity('notifications')
 export class Notification {
   @ObjectIdColumn()
-  id: string;
+  _id: string;
 
   @Column()
   push_token: string;
