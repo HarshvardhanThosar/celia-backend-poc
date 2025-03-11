@@ -1,9 +1,16 @@
-import { Entity, Column, ObjectIdColumn } from 'typeorm';
+import { ObjectId } from 'mongodb';
+import {
+  Entity,
+  Column,
+  ObjectIdColumn,
+  CreateDateColumn,
+  UpdateDateColumn,
+} from 'typeorm';
 
 @Entity('profiles')
 export class Profile {
   @ObjectIdColumn()
-  _id: string;
+  _id: ObjectId;
 
   @Column({ default: 0 })
   score: number;
@@ -22,4 +29,10 @@ export class Profile {
 
   @Column({ nullable: true })
   profile_image: string;
+
+  @CreateDateColumn()
+  created_at: Date;
+
+  @UpdateDateColumn()
+  updated_at: Date;
 }

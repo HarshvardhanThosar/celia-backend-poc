@@ -4,11 +4,13 @@ import {
   ObjectIdColumn,
   CreateDateColumn,
   UpdateDateColumn,
+  Index,
 } from 'typeorm';
 import { ObjectId } from 'mongodb';
 import { SkillStatus } from '../enums/skill-status.enum';
 
 @Entity({ name: 'skills' })
+@Index(['name'], { unique: true })
 export class Skill {
   @ObjectIdColumn()
   _id: ObjectId;

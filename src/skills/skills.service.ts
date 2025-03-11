@@ -14,7 +14,6 @@ export class SkillService {
   ) {}
 
   async get_all_skills() {
-    console.log('Here');
     return await this.skill_repository.find();
   }
 

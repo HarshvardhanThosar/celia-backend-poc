@@ -1,9 +1,16 @@
-import { Entity, ObjectIdColumn, Column } from 'typeorm';
+import { ObjectId } from 'mongodb';
+import {
+  Entity,
+  ObjectIdColumn,
+  Column,
+  CreateDateColumn,
+  UpdateDateColumn,
+} from 'typeorm';
 
 @Entity('notifications')
 export class Notification {
   @ObjectIdColumn()
-  _id: string;
+  _id: ObjectId;
 
   @Column()
   push_token: string;
@@ -20,6 +27,9 @@ export class Notification {
   @Column({ default: false })
   replaceable: boolean; // Whether this notification should replace the previous one of the same type
 
-  @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
+  @CreateDateColumn()
   created_at: Date;
+
+  @UpdateDateColumn()
+  updated_at: Date;
 }

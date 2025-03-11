@@ -9,6 +9,9 @@ import { RouterModule } from '@nestjs/core';
 import { AuthModule } from './community/auth/auth.module';
 import { ProfileModule } from './community/profile/profile.module';
 import { SkillsModule } from './skills/skills.module';
+import { TaskTypesModule } from './task_types/task_types.module';
+import { MasterService } from './master/master.service';
+import { MasterModule } from './master/master.module';
 
 @Module({
   imports: [
@@ -33,6 +36,8 @@ import { SkillsModule } from './skills/skills.module';
     CommunityModule,
     NotificationsModule,
     SkillsModule,
+    TaskTypesModule,
+    MasterModule,
   ],
   controllers: [AppController],
   providers: [AppService],

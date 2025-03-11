@@ -1,10 +1,11 @@
+import { ObjectId } from 'mongodb';
 import { UserID } from 'src/keycloak/types/user';
-import { Entity, ObjectIdColumn, Column } from 'typeorm';
+import { Entity, ObjectIdColumn, Column, CreateDateColumn } from 'typeorm';
 
 @Entity('push_tokens')
 export class PushToken {
   @ObjectIdColumn()
-  _id: string;
+  _id: ObjectId;
 
   @Column()
   user_id: UserID;
@@ -12,6 +13,6 @@ export class PushToken {
   @Column()
   push_token: string;
 
-  @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
+  @CreateDateColumn()
   created_at: Date;
 }

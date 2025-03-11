@@ -4,6 +4,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { Profile } from 'src/community/profile/entities/profile.entity';
 import { PushToken } from 'src/notifications/entities/push-token.entity';
 import { Skill } from 'src/skills/entities/skill.entity';
+import { TaskType } from 'src/task_types/entities/task_type.entity';
 
 @Module({
   imports: [
@@ -22,8 +23,9 @@ import { Skill } from 'src/skills/entities/skill.entity';
             'MONGO_CLUSTER',
           )}`,
           database: configService.get('MONGO_DATABASE'),
-          entities: [PushToken, Profile, Skill],
-          synchronize: true,
+          entities: [PushToken, Profile, Skill, TaskType],
+          synchronize: false,
+          autoLoadEntities: true,
         },
     }),
   ],
