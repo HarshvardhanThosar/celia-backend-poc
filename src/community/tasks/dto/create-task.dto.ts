@@ -11,7 +11,7 @@ import {
 } from 'class-validator';
 import { Type } from 'class-transformer';
 
-export class LocationDto {
+export class LocationDTO {
   @IsNumber()
   latitude: number;
 
@@ -19,7 +19,7 @@ export class LocationDto {
   longitude: number;
 }
 
-export class CreateTaskDto {
+export class CreateTaskDTO {
   @IsString()
   @IsNotEmpty()
   description: string;
@@ -30,8 +30,8 @@ export class CreateTaskDto {
 
   @ValidateNested()
   @IsOptional()
-  @Type(() => LocationDto)
-  location?: LocationDto;
+  @Type(() => LocationDTO)
+  location?: LocationDTO;
 
   @IsNumber()
   @Min(1)
