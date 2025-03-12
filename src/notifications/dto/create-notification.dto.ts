@@ -8,25 +8,45 @@ import {
   IsNotEmpty,
   ValidateNested,
 } from 'class-validator';
-import { NotificationBody } from '../types/NotificationBody';
+import { ApiProperty } from '@nestjs/swagger';
+import { NotificationBodyDTO } from './notification-body.dto';
 
 export class CreateNotificationDTO {
+  @ApiProperty({ description: 'Device push token', example: 'fcm_token_12345' })
   @IsString()
   @IsNotEmpty()
-  push_token: string; // Device push token
+  push_token: string;
 
+  @ApiProperty({
+    description: 'Type of notification',
+    example: NotificationType.COMMUNITY_TASK_AVAILABLE,
+    enum: NotificationType,
+  })
   @IsEnum(NotificationType)
-  notification_type: NotificationType; // Enum for predefined notification types
+  notification_type: NotificationType;
 
+  @ApiProperty({
+    description: 'Title of the notification',
+    example: 'New Community Task Available',
+  })
   @IsString()
   @IsNotEmpty()
-  title: string; // Notification title
+  title: string;
 
+  @ApiProperty({
+    description: 'Notification message body',
+    type: () => NotificationBodyDTO,
+  })
   @ValidateNested()
-  @Type(() => NotificationBody)
-  body: NotificationBody; // Notification message body
+  @Type(() => NotificationBodyDTO)
+  body: NotificationBodyDTO;
 
+  @ApiProperty({
+    description: 'If true, notification can be replaced',
+    example: false,
+    required: false,
+  })
   @IsBoolean()
   @IsOptional()
-  replacable?: boolean = false; // Determines if the notification can be replaced
+  replacable?: boolean = false;
 }

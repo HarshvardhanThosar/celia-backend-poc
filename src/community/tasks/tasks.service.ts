@@ -10,6 +10,8 @@ import { Task } from './entities/task.entity';
 import { ObjectId } from 'mongodb';
 import { TaskStatus, ParticipationStatus } from './enums/task-status.enum';
 import { TaskType } from 'src/task_types/entities/task_type.entity';
+import { CreateTaskDTO } from './dto/create-task.dto';
+import { UpdateTaskDTO } from './dto/update-task.dto';
 
 @Injectable()
 export class TasksService {
@@ -62,7 +64,13 @@ export class TasksService {
     return { tasks, count: tasks.length, total_count };
   }
 
-  async create_task(task_data: Partial<Task>, user_id: string) {
+  async create_task(task_data: CreateTaskDTO, user_id: string) {
+    const task_type = await this.task_type_repository.findOneBy({
+      _id: new ObjectId(task_data.task_type),
+    });
+
+    if (!task_type) throw new NotFoundException('Task type not found');
+
     const new_task = this.task_repository.create({
       ...task_data,
       owner_id: user_id,
@@ -72,6 +80,9 @@ export class TasksService {
       participants: [],
       created_at: new Date(),
       updated_at: new Date(),
+      starts_at: task_data.starts_at.getTime(),
+      completes_at: task_data.completes_at.getTime(),
+      task_type,
     });
 
     return await this.task_repository.save(new_task);
@@ -79,7 +90,7 @@ export class TasksService {
 
   async update_task(
     task_id: string,
-    update_data: Partial<Task>,
+    update_data: Partial<UpdateTaskDTO>,
     user_id: string,
   ) {
     const task = await this.task_repository.findOneBy({
@@ -92,7 +103,31 @@ export class TasksService {
         'You are not authorized to update this task',
       );
 
-    Object.assign(task, update_data, { updated_at: new Date() });
+    let task_type = task.task_type;
+
+    if (update_data.task_type) {
+      const updated_task_type = await this.task_type_repository.findOneBy({
+        _id: new ObjectId(update_data.task_type),
+      });
+
+      if (!updated_task_type)
+        throw new NotFoundException('Task type not found');
+      task_type = updated_task_type;
+    }
+
+    const updated_data = {
+      ...update_data,
+      task_type,
+      updated_at: new Date(),
+      ...(update_data.starts_at && {
+        starts_at: update_data.starts_at.getTime(),
+      }),
+      ...(update_data.completes_at && {
+        completes_at: update_data.completes_at.getTime(),
+      }),
+    };
+
+    Object.assign(task, updated_data);
     await this.task_repository.save(task);
     return task;
   }

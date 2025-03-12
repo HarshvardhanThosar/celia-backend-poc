@@ -16,6 +16,8 @@ import { ApiBearerAuth } from '@nestjs/swagger';
 import { create_response } from 'src/common/utils/response.util';
 import { KeycloakUser } from 'nest-keycloak-connect';
 import { KeycloakAuthUser } from 'src/keycloak/types/user';
+import { CreateTaskDTO } from './dto/create-task.dto';
+import { UpdateTaskDTO } from './dto/update-task.dto';
 
 @Controller('tasks')
 export class TasksController {
@@ -80,7 +82,7 @@ export class TasksController {
   @HttpCode(HttpStatus.CREATED)
   @ApiBearerAuth()
   create_task(
-    @Body() task_data,
+    @Body() task_data: CreateTaskDTO,
     @KeycloakUser() user: KeycloakAuthUser,
     @Res() response,
   ) {
@@ -96,7 +98,7 @@ export class TasksController {
   @ApiBearerAuth()
   update_task(
     @Param('task_id') task_id: string,
-    @Body() update_data,
+    @Body() update_data: UpdateTaskDTO,
     @KeycloakUser() user: KeycloakAuthUser,
     @Res() response,
   ) {
