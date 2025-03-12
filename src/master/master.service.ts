@@ -42,7 +42,7 @@ export class MasterService implements OnModuleInit {
       updated_at: new Date(),
       score,
     });
-    console.log('Inserting skill:', skill);
+
     const saved_skill = await this.skill_repository.save(skill);
     if (!saved_skill || !saved_skill._id) {
       console.error(`Failed to insert skill: ${name}`);

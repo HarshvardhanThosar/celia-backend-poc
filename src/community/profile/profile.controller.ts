@@ -28,7 +28,6 @@ export class ProfileController {
   @ApiBearerAuth()
   async get_profile(@KeycloakUser() user: KeycloakAuthUser, @Res() response) {
     try {
-      console.log(user);
       const _profile = await this.profile_service.get_profile(user.sub);
       return create_response(response, {
         status: HttpStatus.OK,

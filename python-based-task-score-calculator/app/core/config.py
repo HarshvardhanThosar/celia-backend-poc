@@ -1,5 +1,6 @@
-from pydantic_settings import BaseSettings
-from pydantic_settings import SettingsConfigDict
+import os
+from pathlib import Path
+from pydantic_settings import BaseSettings, SettingsConfigDict
 
 class Settings(BaseSettings):
     ENV: str
@@ -28,8 +29,13 @@ class Settings(BaseSettings):
     MONGO_PASSWORD: str
     MONGO_CLUSTER: str
     MONGO_DATABASE: str
-    MONGO_URI: str  # MONGO_URI is directly taken from the .env
+    MONGO_URI: str  # Directly taken from the .env
 
-    model_config = SettingsConfigDict(env_file=".env")
+    # Application Ports
+    FASTAPI_PORT: int
+    NESTJS_PORT: int
+
+    # Load the `.env` file from the root if available
+    model_config = SettingsConfigDict(env_file=Path(__file__).resolve().parents[2] / ".env", env_file_encoding="utf-8")
 
 settings = Settings()

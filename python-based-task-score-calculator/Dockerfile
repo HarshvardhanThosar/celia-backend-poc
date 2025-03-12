@@ -1,20 +1,21 @@
 # Use the official Python image
 FROM python:3.9-slim
 
-# Set the working directory
+# Set working directory
 WORKDIR /app
 
-# Copy only requirements file for caching
+# Install dependencies first (cache layers)
 COPY requirements.txt .
-
-# Install dependencies
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Copy the FastAPI app source code
+# Copy source code
 COPY . .
+
+# Install watchfiles for live reload
+RUN pip install watchfiles
 
 # Expose FastAPI default port
 EXPOSE 8000
 
-# Start FastAPI server
-CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
+# Run with watchfiles for auto-restart on code change
+CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]

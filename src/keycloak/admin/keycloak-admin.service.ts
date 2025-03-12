@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import KeycloakAdminClient from '@keycloak/keycloak-admin-client';
 import { RegisterAuthDTO } from 'src/community/auth/dto/register-auth.dto';
 
@@ -6,10 +7,9 @@ import { RegisterAuthDTO } from 'src/community/auth/dto/register-auth.dto';
 export class KeycloakAdminService {
   private keycloakAdmin: KeycloakAdminClient;
 
-  constructor() {
+  constructor(private configService: ConfigService) {
     this.keycloakAdmin = new KeycloakAdminClient({
-      baseUrl: process.env.KEYCLOAK_URL,
-      // realmName: process.env.KEYCLOAK_REALM,
+      baseUrl: this.configService.get<string>('KEYCLOAK_URL'),
       realmName: 'master',
     });
   }
@@ -18,8 +18,8 @@ export class KeycloakAdminService {
     await this.keycloakAdmin.auth({
       grantType: 'password',
       clientId: 'admin-cli',
-      username: process.env.KC_BOOTSTRAP_ADMIN_USERNAME,
-      password: process.env.KC_BOOTSTRAP_ADMIN_PASSWORD,
+      username: this.configService.get<string>('KC_BOOTSTRAP_ADMIN_USERNAME'),
+      password: this.configService.get<string>('KC_BOOTSTRAP_ADMIN_PASSWORD'),
     });
   }
 
@@ -27,7 +27,7 @@ export class KeycloakAdminService {
     await this.authenticate_admin();
     try {
       const _response = await this.keycloakAdmin.users.create({
-        realm: process.env.KEYCLOAK_REALM,
+        realm: this.configService.get<string>('KEYCLOAK_REALM'),
         username: _register_auth_dto.username,
         email: _register_auth_dto.email,
         firstName: _register_auth_dto.firstName,
@@ -54,12 +54,12 @@ export class KeycloakAdminService {
   async assign_role(userId: string, roleName: string) {
     await this.authenticate_admin();
     const roles = await this.keycloakAdmin.roles.find({
-      realm: process.env.KEYCLOAK_REALM,
+      realm: this.configService.get<string>('KEYCLOAK_REALM'),
     });
     const role = roles.find((r) => r.name === roleName);
     if (!role) throw new Error(`Role '${roleName}' not found`);
     return this.keycloakAdmin.users.addRealmRoleMappings({
-      realm: process.env.KEYCLOAK_REALM,
+      realm: this.configService.get<string>('KEYCLOAK_REALM'),
       id: userId,
       roles: [{ id: role.id!, name: role.name! }],
     });

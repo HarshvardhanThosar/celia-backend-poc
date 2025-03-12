@@ -29,13 +29,18 @@ services:
       KC_DB_PASSWORD: ${KC_DB_PASSWORD}
       KC_BOOTSTRAP_ADMIN_USERNAME: ${KC_BOOTSTRAP_ADMIN_USERNAME}
       KC_BOOTSTRAP_ADMIN_PASSWORD: ${KC_BOOTSTRAP_ADMIN_PASSWORD}
+      KEYCLOAK_ADMIN: admin
+      KEYCLOAK_ADMIN_PASSWORD: admin
     ports:
       - '${KEYCLOAK_PORT}:8080'
     command:
       [
         'start-dev',
         '--log-level=info',
-        '--https-port=8443',
+        '--cache=local',
+        '--spi-theme-cache-themes=false',
+        '--spi-theme-static-max-age=-1',
+        '--spi-theme-cache-templates=false',
         '--hostname-strict=false',
       ]
 
@@ -48,16 +53,21 @@ services:
     env_file:
       - .env
     environment:
-      NODE_ENV: production
+      NODE_ENV: development
       MONGO_URI: ${MONGO_URI}
       MONGO_DATABASE: ${MONGO_DATABASE}
+      KEYCLOAK_URL: 'http://keycloak-server:8080'
     ports:
       - '3000:3000'
+    volumes:
+      - .:/usr/src/app # Mount local code into the container
+      - /usr/src/app/node_modules # Ignore node_modules (keep dependencies inside the container)
+    command: npm run start:dev # Hot reload enabled
 
   python-task-score:
     build: python-based-task-score-calculator
     container_name: python-task-score
-    restart: always
+    restart: unless-stopped
     depends_on:
       - postgres
     env_file:
@@ -65,6 +75,16 @@ services:
     environment:
       MONGO_URI: ${MONGO_URI}
       MONGO_DATABASE: ${MONGO_DATABASE}
+    command:
+      [
+        'uvicorn',
+        'app.main:app',
+        '--host',
+        '0.0.0.0',
+        '--port',
+        '8000',
+        '--reload',
+      ]
     ports:
       - '8000:8000'
 

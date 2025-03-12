@@ -2,7 +2,8 @@ import { IsString, IsNumber, IsNotEmpty, IsUrl } from 'class-validator';
 
 export class EnvSchema {
   @IsNumber()
-  PORT: number;
+  NESTJS_PORT: number;
+  FASTAPI_PORT: number;
 
   // PostgreSQL
   @IsString()

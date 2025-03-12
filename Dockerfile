@@ -4,20 +4,18 @@ FROM node:22.14.0-alpine
 # Set working directory
 WORKDIR /usr/src/app
 
-# Copy package.json and package-lock.json
+# Install dependencies first (use caching)
 COPY package*.json ./
+RUN npm install --silent
 
-# Install dependencies
-RUN npm install
-
-# Copy the rest of the application
+# Copy only source code (avoid overwriting node_modules)
 COPY . .
 
-# Build the project
-RUN npm run build
+# Install nodemon for hot-reloading
+RUN npm install -g nodemon
 
 # Expose necessary ports
 EXPOSE 3000
 
-# Start the app
-CMD ["npm", "run", "start:prod"]
+# Use nodemon for live-reloading during development
+CMD ["npm", "run", "start:dev"]
