@@ -5,8 +5,6 @@ import {
   CreateDateColumn,
   UpdateDateColumn,
   ManyToOne,
-  ManyToMany,
-  JoinTable,
 } from 'typeorm';
 import { ObjectId } from 'mongodb';
 import { TaskType } from 'src/task_types/entities/task_type.entity';
@@ -63,6 +61,12 @@ export class Task {
     requested_at: number;
     updated_at?: number;
   }[];
+
+  @Column({
+    type: 'json',
+    default: [],
+  })
+  media: string[]; // Base64-encoded images
 
   @CreateDateColumn()
   created_at: Date;

@@ -64,6 +64,18 @@ export class TasksService {
     return { tasks, count: tasks.length, total_count };
   }
 
+  async get_task_by_id(task_id: string) {
+    const task = await this.task_repository.findOneBy({
+      _id: new ObjectId(task_id),
+    });
+
+    if (!task) {
+      throw new NotFoundException('Task not found');
+    }
+
+    return task;
+  }
+
   async create_task(task_data: CreateTaskDTO, user_id: string) {
     const task_type = await this.task_type_repository.findOneBy({
       _id: new ObjectId(task_data.task_type),
@@ -83,6 +95,7 @@ export class TasksService {
       starts_at: task_data.starts_at.getTime(),
       completes_at: task_data.completes_at.getTime(),
       task_type,
+      media: task_data.media || [], // Save Base64 images
     });
 
     return await this.task_repository.save(new_task);
@@ -125,6 +138,7 @@ export class TasksService {
       ...(update_data.completes_at && {
         completes_at: update_data.completes_at.getTime(),
       }),
+      ...(update_data.media && { media: update_data.media }),
     };
 
     Object.assign(task, updated_data);

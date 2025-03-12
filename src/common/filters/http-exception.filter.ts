@@ -1,4 +1,3 @@
-// src/common/filters/http-exception.filter.ts
 import {
   ExceptionFilter,
   Catch,
@@ -15,12 +14,15 @@ export class HttpExceptionFilter implements ExceptionFilter {
     const response = ctx.getResponse<Response>();
 
     let status = HttpStatus.INTERNAL_SERVER_ERROR;
-    let message = 'Internal Server Error';
+    let message = 'Internal server error';
 
     if (exception instanceof HttpException) {
       status = exception.getStatus();
-      const errorResponse = exception.getResponse() as any;
-      message = errorResponse.message || message;
+      const errorResponse = exception.getResponse();
+      message =
+        typeof errorResponse === 'string'
+          ? errorResponse
+          : (errorResponse as any).message || message;
     }
 
     response.status(status).json({

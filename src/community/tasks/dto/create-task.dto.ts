@@ -8,7 +8,8 @@ import {
   IsDate,
   Min,
   Max,
-  ValidateNested,
+  IsArray,
+  Matches,
 } from 'class-validator';
 import { Type } from 'class-transformer';
 import { LocationDTO } from './location.dto';
@@ -28,16 +29,14 @@ export class CreateTaskDTO {
   })
   @IsBoolean()
   @IsOptional()
-  is_remote?: boolean = true;
+  is_remote?: boolean;
 
   @ApiProperty({
     description: 'Task location (required if not remote)',
     type: () => LocationDTO,
     required: false,
   })
-  @ValidateNested()
   @IsOptional()
-  @Type(() => LocationDTO)
   location?: LocationDTO;
 
   @ApiProperty({ description: 'Number of volunteers required', example: 5 })
@@ -48,7 +47,7 @@ export class CreateTaskDTO {
   @ApiProperty({ description: 'Hours required per day', example: 3 })
   @IsNumber()
   @Min(1)
-  @Max(6) // Based on FastAPI reference
+  @Max(6)
   hours_required_per_day: number;
 
   @ApiProperty({
@@ -75,30 +74,20 @@ export class CreateTaskDTO {
   @IsNotEmpty()
   task_type: string;
 
-  // @ApiProperty({
-  //   description: 'Minimum skill score required for the task',
-  //   required: false,
-  //   example: 100,
-  // })
-  // @IsNumber()
-  // @IsOptional()
-  // min_score?: number;
-
-  // @ApiProperty({
-  //   description: 'Maximum skill score for the task',
-  //   required: false,
-  //   example: 300,
-  // })
-  // @IsNumber()
-  // @IsOptional()
-  // max_score?: number;
-
-  // @ApiProperty({
-  //   description: 'List of task participants',
-  //   required: false,
-  //   type: 'array',
-  //   items: { type: 'string' },
-  // })
-  // @IsOptional()
-  // participants?: string[];
+  @ApiProperty({
+    description: 'Array of base64-encoded images',
+    type: 'array',
+    items: { type: 'string' },
+    example: [
+      'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAA...',
+      'data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD...',
+    ],
+  })
+  @IsArray()
+  @IsOptional()
+  @Matches(/^data:image\/(png|jpeg|jpg);base64,/, {
+    each: true,
+    message: 'Invalid Base64 image format',
+  })
+  media?: string[];
 }

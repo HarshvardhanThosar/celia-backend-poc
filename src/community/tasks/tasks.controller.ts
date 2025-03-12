@@ -10,15 +10,39 @@ import {
   HttpStatus,
   HttpCode,
   Res,
+  UploadedFiles,
+  UseInterceptors,
 } from '@nestjs/common';
 import { TasksService } from './tasks.service';
-import { ApiBearerAuth } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiConsumes, ApiBody } from '@nestjs/swagger';
 import { create_response } from 'src/common/utils/response.util';
 import { KeycloakUser } from 'nest-keycloak-connect';
 import { KeycloakAuthUser } from 'src/keycloak/types/user';
 import { CreateTaskDTO } from './dto/create-task.dto';
 import { UpdateTaskDTO } from './dto/update-task.dto';
+import { FileInterceptor, FilesInterceptor } from '@nestjs/platform-express';
+import { diskStorage } from 'multer';
+import { extname } from 'path';
 
+const imageUploadConfig = {
+  storage: diskStorage({
+    destination: './uploads/tasks',
+    filename: (_req, file, cb) => {
+      const uniqueSuffix = `${Date.now()}-${Math.round(Math.random() * 1e9)}`;
+      cb(
+        null,
+        `${file.fieldname}-${uniqueSuffix}${extname(file.originalname)}`,
+      );
+    },
+  }),
+  limits: { fileSize: 5 * 1024 * 1024 }, // 5MB limit
+  fileFilter: (_req, file, cb) => {
+    if (!file.mimetype.startsWith('image/')) {
+      return cb(new Error('Only image uploads are allowed'), false);
+    }
+    cb(null, true);
+  },
+};
 @Controller('tasks')
 export class TasksController {
   constructor(private readonly tasks_service: TasksService) {}
@@ -78,16 +102,38 @@ export class TasksController {
     });
   }
 
+  @Get('/:task_id')
+  @HttpCode(HttpStatus.OK)
+  @ApiBearerAuth()
+  async get_task_by_id(@Param('task_id') task_id: string, @Res() response) {
+    const task = await this.tasks_service.get_task_by_id(task_id);
+    return create_response(response, {
+      data: task,
+      message: 'Task retrieved successfully',
+      status: HttpStatus.OK,
+    });
+  }
+
   @Post('/')
   @HttpCode(HttpStatus.CREATED)
   @ApiBearerAuth()
-  create_task(
+  @UseInterceptors(FilesInterceptor('media', 5, imageUploadConfig))
+  @ApiConsumes('multipart/form-data')
+  @ApiBody({ description: 'Task creation payload', type: CreateTaskDTO })
+  async create_task(
     @Body() task_data: CreateTaskDTO,
+    @UploadedFiles() media_files: Express.Multer.File[],
     @KeycloakUser() user: KeycloakAuthUser,
     @Res() response,
   ) {
+    const file_urls = media_files?.map(
+      (file) => `/uploads/tasks/${file.filename}`,
+    );
     return create_response(response, {
-      data: this.tasks_service.create_task(task_data, user.sub),
+      data: this.tasks_service.create_task(
+        { ...task_data, media: file_urls },
+        user.sub,
+      ),
       message: 'Task created successfully',
       status: HttpStatus.CREATED,
     });
