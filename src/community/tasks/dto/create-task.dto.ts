@@ -75,19 +75,12 @@ export class CreateTaskDTO {
   task_type: string;
 
   @ApiProperty({
-    description: 'Array of base64-encoded images',
     type: 'array',
-    items: { type: 'string' },
-    example: [
-      'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAA...',
-      'data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD...',
-    ],
+    items: { type: 'string', format: 'binary' },
+    description: 'Task media files (PNG/JPEG)',
+    required: false,
   })
   @IsArray()
   @IsOptional()
-  @Matches(/^data:image\/(png|jpeg|jpg);base64,/, {
-    each: true,
-    message: 'Invalid Base64 image format',
-  })
-  media?: string[];
+  media?: Express.Multer.File[];
 }

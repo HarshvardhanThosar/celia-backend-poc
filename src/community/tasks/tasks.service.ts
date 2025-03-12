@@ -12,6 +12,7 @@ import { TaskStatus, ParticipationStatus } from './enums/task-status.enum';
 import { TaskType } from 'src/task_types/entities/task_type.entity';
 import { CreateTaskDTO } from './dto/create-task.dto';
 import { UpdateTaskDTO } from './dto/update-task.dto';
+import { KeycloakAuthUser, UserID } from 'src/keycloak/types/user';
 
 @Injectable()
 export class TasksService {
@@ -76,12 +77,17 @@ export class TasksService {
     return task;
   }
 
-  async create_task(task_data: CreateTaskDTO, user_id: string) {
+  async create_task(
+    task_data: CreateTaskDTO,
+    media_files: Express.Multer.File[],
+    user_id: UserID,
+  ) {
     const task_type = await this.task_type_repository.findOneBy({
       _id: new ObjectId(task_data.task_type),
     });
 
     if (!task_type) throw new NotFoundException('Task type not found');
+    const file_urls = media_files.map((file) => `/uploads/${file.filename}`);
 
     const new_task = this.task_repository.create({
       ...task_data,
@@ -95,7 +101,7 @@ export class TasksService {
       starts_at: task_data.starts_at.getTime(),
       completes_at: task_data.completes_at.getTime(),
       task_type,
-      media: task_data.media || [], // Save Base64 images
+      media: file_urls,
     });
 
     return await this.task_repository.save(new_task);
@@ -104,6 +110,7 @@ export class TasksService {
   async update_task(
     task_id: string,
     update_data: Partial<UpdateTaskDTO>,
+    media_files: Express.Multer.File[],
     user_id: string,
   ) {
     const task = await this.task_repository.findOneBy({
@@ -118,6 +125,7 @@ export class TasksService {
 
     let task_type = task.task_type;
 
+    // If task_type is updated, fetch the new task type
     if (update_data.task_type) {
       const updated_task_type = await this.task_type_repository.findOneBy({
         _id: new ObjectId(update_data.task_type),
@@ -128,9 +136,18 @@ export class TasksService {
       task_type = updated_task_type;
     }
 
+    // If new files are uploaded, process them
+    let updated_media = task.media || [];
+    if (media_files.length > 0) {
+      const file_urls = media_files.map((file) => `/uploads/${file.filename}`);
+      updated_media = [...updated_media, ...file_urls]; // Append new media
+    }
+
+    // Construct updated task data
     const updated_data = {
       ...update_data,
       task_type,
+      media: updated_media, // Preserve existing media and add new files
       updated_at: new Date(),
       ...(update_data.starts_at && {
         starts_at: update_data.starts_at.getTime(),
@@ -138,7 +155,6 @@ export class TasksService {
       ...(update_data.completes_at && {
         completes_at: update_data.completes_at.getTime(),
       }),
-      ...(update_data.media && { media: update_data.media }),
     };
 
     Object.assign(task, updated_data);

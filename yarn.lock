@@ -1508,7 +1508,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@nestjs/platform-express@npm:^11.0.1":
+"@nestjs/platform-express@npm:^11.0.11":
   version: 11.0.11
   resolution: "@nestjs/platform-express@npm:11.0.11"
   dependencies:
@@ -3380,7 +3380,7 @@ __metadata:
     "@nestjs/common": "npm:^11.0.1"
     "@nestjs/config": "npm:^4.0.1"
     "@nestjs/core": "npm:^11.0.1"
-    "@nestjs/platform-express": "npm:^11.0.1"
+    "@nestjs/platform-express": "npm:^11.0.11"
     "@nestjs/schematics": "npm:^11.0.0"
     "@nestjs/swagger": "npm:^11.0.6"
     "@nestjs/testing": "npm:^11.0.1"
@@ -3403,6 +3403,7 @@ __metadata:
     jest: "npm:^29.7.0"
     keycloak-connect: "npm:^26.1.1"
     mongodb: "npm:^5.9.2"
+    multer: "npm:^1.4.5-lts.1"
     nest-keycloak-connect: "npm:^2.0.0-alpha.1"
     prettier: "npm:^3.4.2"
     reflect-metadata: "npm:^0.2.2"
@@ -6781,7 +6782,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"multer@npm:1.4.5-lts.1":
+"multer@npm:1.4.5-lts.1, multer@npm:^1.4.5-lts.1":
   version: 1.4.5-lts.1
   resolution: "multer@npm:1.4.5-lts.1"
   dependencies:

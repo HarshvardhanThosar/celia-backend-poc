@@ -28,20 +28,12 @@ export class UpdateTaskDTO extends PartialType(CreateTaskDTO) {
   task_type?: string;
 
   @ApiProperty({
-    description: 'Updated array of base64-encoded images',
     type: 'array',
-    items: { type: 'string' },
+    items: { type: 'string', format: 'binary' },
+    description: 'Task media files (PNG/JPEG)',
     required: false,
-    example: [
-      'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAA...',
-      'data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD...',
-    ],
   })
   @IsArray()
   @IsOptional()
-  @Matches(/^data:image\/(png|jpeg|jpg);base64,/, {
-    each: true,
-    message: 'Invalid Base64 image format',
-  })
-  media?: string[];
+  media?: Express.Multer.File[];
 }

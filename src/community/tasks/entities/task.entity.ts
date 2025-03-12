@@ -62,11 +62,8 @@ export class Task {
     updated_at?: number;
   }[];
 
-  @Column({
-    type: 'json',
-    default: [],
-  })
-  media: string[]; // Base64-encoded images
+  @Column({ type: 'json', default: [] })
+  media?: string[];
 
   @CreateDateColumn()
   created_at: Date;
