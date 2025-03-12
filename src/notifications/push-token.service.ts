@@ -37,7 +37,6 @@ export class PushTokenService {
   //       const response = await this.expo.sendPushNotificationsAsync([message]);
   //       return response;
   //     } catch (error) {
-  //       console.error('Error sending push notification:', error);
   //       throw new Error('Failed to send push notification');
   //     }
   //   }

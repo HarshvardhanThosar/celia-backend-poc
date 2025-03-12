@@ -43,10 +43,7 @@ export class AuthController {
   @Public()
   async login(@Body() _login_auth_dto: LoginAuthDTO, @Res() response) {
     try {
-      const _auth = await this.auth_service.login(
-        _login_auth_dto.username,
-        _login_auth_dto.password,
-      );
+      const _auth = await this.auth_service.login(_login_auth_dto);
       return create_response(response, {
         status: HttpStatus.OK,
         message: 'Logged in successfully!',
@@ -83,9 +80,9 @@ export class AuthController {
   @Post('logout')
   @HttpCode(HttpStatus.OK)
   @ApiBearerAuth()
-  async logout(@Body() log_out_dto: LogoutAuthDTO, @Res() response) {
+  async logout(@Body() _log_out_dto: LogoutAuthDTO, @Res() response) {
     try {
-      await this.auth_service.logout(log_out_dto.refresh_token);
+      await this.auth_service.logout(_log_out_dto);
       return create_response(response, {
         status: HttpStatus.OK,
         message: 'User logged out successfully!',

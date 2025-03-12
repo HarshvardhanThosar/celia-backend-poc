@@ -13,10 +13,10 @@ import { TaskType } from '../task_types/entities/task_type.entity';
     TypeOrmModule.forRootAsync({
       imports: [ConfigModule],
       inject: [ConfigService],
-      useFactory: async (configService: ConfigService) => ({
+      useFactory: async (config_service: ConfigService) => ({
         type: 'mongodb',
-        url: configService.get<string>('MONGO_URI'),
-        database: configService.get<string>('MONGO_DATABASE'),
+        url: config_service.get<string>('MONGO_URI'),
+        database: config_service.get<string>('MONGO_DATABASE'),
         entities: [PushToken, Profile, Skill, TaskType, Task],
         synchronize: false,
         autoLoadEntities: true,

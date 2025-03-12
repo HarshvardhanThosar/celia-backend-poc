@@ -45,7 +45,6 @@ export class MasterService implements OnModuleInit {
 
     const saved_skill = await this.skill_repository.save(skill);
     if (!saved_skill || !saved_skill._id) {
-      console.error(`Failed to insert skill: ${name}`);
       throw new Error(`Failed to insert skill: ${name}`);
     }
     return saved_skill._id;
@@ -57,7 +56,6 @@ export class MasterService implements OnModuleInit {
     skill_ids: ObjectId[],
   ) {
     if (!skill_ids || skill_ids.length === 0) {
-      console.error(`No skill IDs provided for task type: ${name}`);
       throw new Error(`No skill IDs provided for task type: ${name}`);
     }
     const existingTaskType = await this.task_type_repository.findOne({
@@ -193,7 +191,9 @@ export class MasterService implements OnModuleInit {
 
       this.logger.log('Static skills and task types inserted successfully!');
     } catch (error) {
-      console.error(error);
+      this.logger.error(
+        `Failed to insert static skills and task types: ${JSON.stringify(error)}`,
+      );
     }
   }
 }

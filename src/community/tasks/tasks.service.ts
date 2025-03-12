@@ -3,6 +3,7 @@ import {
   NotFoundException,
   ForbiddenException,
   BadRequestException,
+  Logger,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
@@ -16,12 +17,13 @@ import {
 import { TaskType } from 'src/task_types/entities/task_type.entity';
 import { CreateTaskDTO } from './dto/create-task.dto';
 import { UpdateTaskDTO } from './dto/update-task.dto';
-import { UserID } from 'src/keycloak/types/user';
 import axios from 'axios';
 import { CompleteAndRateTaskDTO } from './dto/complete-and-rate-task.dto';
 
 @Injectable()
 export class TasksService {
+  private readonly logger = new Logger(TasksService.name);
+
   constructor(
     @InjectRepository(Task)
     private task_repository: Repository<Task>,
@@ -142,7 +144,7 @@ export class TasksService {
 
       return new_task;
     } catch (error) {
-      console.error('Task creation failed:', error);
+      this.logger.error('Task creation failed:', error);
       throw new BadRequestException('Failed to create task');
     }
   }
@@ -208,7 +210,7 @@ export class TasksService {
 
       return task;
     } catch (error) {
-      console.error('Task update failed:', error);
+      this.logger.error('Task update failed:', error);
       throw new BadRequestException('Failed to update task');
     }
   }

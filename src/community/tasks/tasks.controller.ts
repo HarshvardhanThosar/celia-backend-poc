@@ -11,6 +11,7 @@ import {
   Res,
   UploadedFiles,
   UseInterceptors,
+  Logger,
 } from '@nestjs/common';
 import { TasksService } from './tasks.service';
 import { ApiBearerAuth, ApiConsumes } from '@nestjs/swagger';
@@ -25,6 +26,8 @@ import { CompleteAndRateTaskDTO } from './dto/complete-and-rate-task.dto';
 
 @Controller('tasks')
 export class TasksController {
+  private readonly logger = new Logger(TasksController.name);
+
   constructor(private readonly tasks_service: TasksService) {}
 
   @Get('/rating-options')
@@ -117,7 +120,7 @@ export class TasksController {
         status: HttpStatus.CREATED,
       });
     } catch (error) {
-      console.error('Task creation failed:', error);
+      this.logger.error('Task creation failed:', error);
       return create_response(response, {
         message: error.message || 'Failed to create task',
         status: HttpStatus.BAD_REQUEST,
@@ -150,7 +153,7 @@ export class TasksController {
         status: HttpStatus.OK,
       });
     } catch (error) {
-      console.error('Task update failed:', error);
+      this.logger.error('Task update failed:', error);
       return create_response(response, {
         message: error.message || 'Failed to update task',
         status: HttpStatus.BAD_REQUEST,
@@ -179,7 +182,7 @@ export class TasksController {
         status: HttpStatus.OK,
       });
     } catch (error) {
-      console.error('Task completion and rating failed:', error);
+      this.logger.error('Task completion and rating failed:', error);
       return create_response(response, {
         message: error.message || 'Failed to complete and rate the task',
         status: error.status || HttpStatus.BAD_REQUEST,
