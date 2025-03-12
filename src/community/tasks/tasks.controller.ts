@@ -98,17 +98,30 @@ export class TasksController {
   @ApiBearerAuth()
   @ApiConsumes('multipart/form-data')
   @UseInterceptors(FilesInterceptor('media', 5, multerOptions))
-  create_task(
+  async create_task(
     @Body() task_data: CreateTaskDTO,
     @UploadedFiles() media: Express.Multer.File[],
     @KeycloakUser() user: KeycloakAuthUser,
     @Res() response,
   ) {
-    return create_response(response, {
-      data: this.tasks_service.create_task(task_data, media, user.sub),
-      message: 'Task created successfully',
-      status: HttpStatus.CREATED,
-    });
+    try {
+      const created_task = await this.tasks_service.create_task(
+        task_data,
+        media,
+        user.sub,
+      );
+      return create_response(response, {
+        data: created_task,
+        message: 'Task created successfully',
+        status: HttpStatus.CREATED,
+      });
+    } catch (error) {
+      console.error('Task creation failed:', error);
+      return create_response(response, {
+        message: error.message || 'Failed to create task',
+        status: error.status || HttpStatus.BAD_REQUEST,
+      });
+    }
   }
 
   @Patch('/:task_id')
@@ -116,23 +129,32 @@ export class TasksController {
   @ApiBearerAuth()
   @ApiConsumes('multipart/form-data')
   @UseInterceptors(FilesInterceptor('media', 5, multerOptions))
-  update_task(
+  async update_task(
     @Param('task_id') task_id: string,
     @Body() update_data: UpdateTaskDTO,
     @UploadedFiles() media: Express.Multer.File[],
     @KeycloakUser() user: KeycloakAuthUser,
     @Res() response,
   ) {
-    return create_response(response, {
-      data: this.tasks_service.update_task(
+    try {
+      const updated_task = await this.tasks_service.update_task(
         task_id,
         update_data,
         media,
         user.sub,
-      ),
-      message: 'Task updated successfully',
-      status: HttpStatus.OK,
-    });
+      );
+      return create_response(response, {
+        data: updated_task,
+        message: 'Task updated successfully',
+        status: HttpStatus.OK,
+      });
+    } catch (error) {
+      console.error('Task update failed:', error);
+      return create_response(response, {
+        message: error.message || 'Failed to update task',
+        status: error.status || HttpStatus.BAD_REQUEST,
+      });
+    }
   }
 
   @Delete('/:task_id')

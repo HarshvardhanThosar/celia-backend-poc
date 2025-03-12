@@ -9,3 +9,9 @@ export enum ParticipationStatus {
   ACCEPTED = 'accepted',
   REJECTED = 'rejected',
 }
+
+export enum ScoreAssignmentStatus {
+  UNASSIGNED = 'unassigned',
+  ASSIGNED = 'assigned',
+  REJECTED = 'rejected',
+}

@@ -8,7 +8,11 @@ import {
 } from 'typeorm';
 import { ObjectId } from 'mongodb';
 import { TaskType } from 'src/task_types/entities/task_type.entity';
-import { ParticipationStatus, TaskStatus } from '../enums/task-status.enum';
+import {
+  ParticipationStatus,
+  ScoreAssignmentStatus,
+  TaskStatus,
+} from '../enums/task-status.enum';
 
 @Entity({ name: 'tasks' })
 export class Task {
@@ -28,10 +32,10 @@ export class Task {
   hours_required_per_day: number;
 
   @Column()
-  starts_at: number;
+  starts_at: Date;
 
   @Column()
-  completes_at: number;
+  completes_at: Date;
 
   @ManyToOne(() => TaskType)
   task_type: TaskType;
@@ -47,6 +51,13 @@ export class Task {
 
   @Column()
   max_score: number;
+
+  @Column({
+    type: 'enum',
+    enum: ScoreAssignmentStatus,
+    default: ScoreAssignmentStatus.UNASSIGNED,
+  })
+  score_assignment_status: ScoreAssignmentStatus;
 
   @Column({ type: 'enum', enum: TaskStatus, default: TaskStatus.ACTIVE })
   status: TaskStatus;

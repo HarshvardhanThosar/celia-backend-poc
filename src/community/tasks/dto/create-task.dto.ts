@@ -9,10 +9,11 @@ import {
   Min,
   Max,
   IsArray,
-  Matches,
+  IsEnum,
 } from 'class-validator';
 import { Type } from 'class-transformer';
 import { LocationDTO } from './location.dto';
+import { ScoreAssignmentStatus } from '../enums/task-status.enum';
 
 export class CreateTaskDTO {
   @ApiProperty({
@@ -83,4 +84,13 @@ export class CreateTaskDTO {
   @IsArray()
   @IsOptional()
   media?: Express.Multer.File[];
+
+  @ApiProperty({
+    description: 'Score assignment status',
+    enum: ScoreAssignmentStatus,
+    example: ScoreAssignmentStatus.UNASSIGNED,
+  })
+  @IsEnum(ScoreAssignmentStatus)
+  @IsOptional()
+  score_assignment_status?: ScoreAssignmentStatus;
 }

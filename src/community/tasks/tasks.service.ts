@@ -8,11 +8,16 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Task } from './entities/task.entity';
 import { ObjectId } from 'mongodb';
-import { TaskStatus, ParticipationStatus } from './enums/task-status.enum';
+import {
+  TaskStatus,
+  ParticipationStatus,
+  ScoreAssignmentStatus,
+} from './enums/task-status.enum';
 import { TaskType } from 'src/task_types/entities/task_type.entity';
 import { CreateTaskDTO } from './dto/create-task.dto';
 import { UpdateTaskDTO } from './dto/update-task.dto';
-import { KeycloakAuthUser, UserID } from 'src/keycloak/types/user';
+import { UserID } from 'src/keycloak/types/user';
+import axios from 'axios';
 
 @Injectable()
 export class TasksService {
@@ -80,31 +85,48 @@ export class TasksService {
   async create_task(
     task_data: CreateTaskDTO,
     media_files: Express.Multer.File[],
-    user_id: UserID,
+    user_id: string,
   ) {
     const task_type = await this.task_type_repository.findOneBy({
       _id: new ObjectId(task_data.task_type),
     });
 
     if (!task_type) throw new NotFoundException('Task type not found');
+
     const file_urls = media_files.map((file) => `/uploads/${file.filename}`);
 
-    const new_task = this.task_repository.create({
-      ...task_data,
-      owner_id: user_id,
-      status: TaskStatus.ACTIVE,
-      min_score: 1,
-      max_score: 1,
-      participants: [],
-      created_at: new Date(),
-      updated_at: new Date(),
-      starts_at: task_data.starts_at.getTime(),
-      completes_at: task_data.completes_at.getTime(),
-      task_type,
-      media: file_urls,
-    });
+    try {
+      const starts_at = new Date(task_data.starts_at);
+      const completes_at = new Date(task_data.completes_at);
 
-    return await this.task_repository.save(new_task);
+      if (isNaN(starts_at.getTime()) || isNaN(completes_at.getTime())) {
+        throw new BadRequestException('Invalid start or completion date');
+      }
+
+      const new_task = this.task_repository.create({
+        ...task_data,
+        owner_id: user_id,
+        status: TaskStatus.ACTIVE,
+        min_score: 0,
+        max_score: 0,
+        participants: [],
+        created_at: new Date(),
+        updated_at: new Date(),
+        starts_at,
+        completes_at,
+        task_type,
+        media: file_urls,
+        score_assignment_status:
+          task_data.score_assignment_status || ScoreAssignmentStatus.UNASSIGNED,
+      });
+
+      return await this.task_repository.save(new_task);
+    } catch (error) {
+      console.error('Task creation failed:', error);
+      throw new BadRequestException(
+        'Failed to create task due to an internal error',
+      );
+    }
   }
 
   async update_task(
@@ -125,7 +147,6 @@ export class TasksService {
 
     let task_type = task.task_type;
 
-    // If task_type is updated, fetch the new task type
     if (update_data.task_type) {
       const updated_task_type = await this.task_type_repository.findOneBy({
         _id: new ObjectId(update_data.task_type),
@@ -136,30 +157,37 @@ export class TasksService {
       task_type = updated_task_type;
     }
 
-    // If new files are uploaded, process them
     let updated_media = task.media || [];
     if (media_files.length > 0) {
       const file_urls = media_files.map((file) => `/uploads/${file.filename}`);
-      updated_media = [...updated_media, ...file_urls]; // Append new media
+      updated_media = [...updated_media, ...file_urls];
     }
 
-    // Construct updated task data
-    const updated_data = {
-      ...update_data,
-      task_type,
-      media: updated_media, // Preserve existing media and add new files
-      updated_at: new Date(),
-      ...(update_data.starts_at && {
-        starts_at: update_data.starts_at.getTime(),
-      }),
-      ...(update_data.completes_at && {
-        completes_at: update_data.completes_at.getTime(),
-      }),
-    };
+    try {
+      const updated_data = {
+        ...update_data,
+        task_type,
+        media: updated_media,
+        updated_at: new Date(),
+        score_assignment_status:
+          update_data.score_assignment_status || task.score_assignment_status,
+        ...(update_data.starts_at && {
+          starts_at: new Date(update_data.starts_at),
+        }),
+        ...(update_data.completes_at && {
+          completes_at: new Date(update_data.completes_at),
+        }),
+      };
 
-    Object.assign(task, updated_data);
-    await this.task_repository.save(task);
-    return task;
+      Object.assign(task, updated_data);
+      await this.task_repository.save(task);
+      return task;
+    } catch (error) {
+      console.error('Task update failed:', error);
+      throw new BadRequestException(
+        'Failed to update task due to an internal error',
+      );
+    }
   }
 
   async delete_task(task_id: string, user_id: string) {
