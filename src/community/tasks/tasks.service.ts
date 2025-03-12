@@ -18,6 +18,7 @@ import { CreateTaskDTO } from './dto/create-task.dto';
 import { UpdateTaskDTO } from './dto/update-task.dto';
 import { UserID } from 'src/keycloak/types/user';
 import axios from 'axios';
+import { CompleteAndRateTaskDTO } from './dto/complete-and-rate-task.dto';
 
 @Injectable()
 export class TasksService {
@@ -120,7 +121,12 @@ export class TasksService {
           task_data.score_assignment_status || ScoreAssignmentStatus.UNASSIGNED,
       });
 
-      return await this.task_repository.save(new_task);
+      await this.task_repository.save(new_task);
+
+      const score_calculated = await axios.post(
+        'http://localhost:5000/score',
+        {},
+      );
     } catch (error) {
       console.error('Task creation failed:', error);
       throw new BadRequestException(
@@ -188,6 +194,37 @@ export class TasksService {
         'Failed to update task due to an internal error',
       );
     }
+  }
+
+  async complete_and_rate_task(
+    task_id: string,
+    complete_and_rate_data: CompleteAndRateTaskDTO,
+    user_id: string,
+  ) {
+    const task = await this.task_repository.findOneBy({
+      _id: new ObjectId(task_id),
+    });
+
+    if (!task) throw new NotFoundException('Task not found');
+    if (task.owner_id !== user_id)
+      throw new ForbiddenException(
+        'Only the task owner can mark this task as completed',
+      );
+
+    if (task.status === TaskStatus.COMPLETED)
+      throw new BadRequestException(
+        'Task has already been marked as completed',
+      );
+
+    if (complete_and_rate_data.rating < 1 || complete_and_rate_data.rating > 5)
+      throw new BadRequestException('Rating must be between 1 and 5');
+
+    task.feedback_note = complete_and_rate_data.feedback_note || undefined;
+    task.rating = complete_and_rate_data.rating;
+
+    task.updated_at = new Date();
+    await this.task_repository.save(task);
+    return task;
   }
 
   async delete_task(task_id: string, user_id: string) {

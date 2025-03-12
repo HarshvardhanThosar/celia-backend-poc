@@ -76,6 +76,12 @@ export class Task {
   @Column({ type: 'json', default: [] })
   media?: string[];
 
+  @Column({ type: 'int', nullable: true })
+  rating?: number;
+
+  @Column({ type: 'text', nullable: true })
+  feedback_note?: string;
+
   @CreateDateColumn()
   created_at: Date;
 

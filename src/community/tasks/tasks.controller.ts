@@ -21,6 +21,7 @@ import { FilesInterceptor } from '@nestjs/platform-express';
 import { KeycloakUser } from 'nest-keycloak-connect';
 import { KeycloakAuthUser } from 'src/keycloak/types/user';
 import { multerOptions } from 'src/configs/multer.config';
+import { CompleteAndRateTaskDTO } from './dto/complete-and-rate-task.dto';
 
 @Controller('tasks')
 export class TasksController {
@@ -152,6 +153,35 @@ export class TasksController {
       console.error('Task update failed:', error);
       return create_response(response, {
         message: error.message || 'Failed to update task',
+        status: error.status || HttpStatus.BAD_REQUEST,
+      });
+    }
+  }
+
+  @Patch('/:task_id/complete-and-rate')
+  @HttpCode(HttpStatus.OK)
+  @ApiBearerAuth()
+  async complete_and_rate_task(
+    @Param('task_id') task_id: string,
+    @Body() complete_and_rate_data: CompleteAndRateTaskDTO,
+    @KeycloakUser() user: KeycloakAuthUser,
+    @Res() response,
+  ) {
+    try {
+      const updated_task = await this.tasks_service.complete_and_rate_task(
+        task_id,
+        complete_and_rate_data,
+        user.sub,
+      );
+      return create_response(response, {
+        data: updated_task,
+        message: 'Task marked as completed and rated successfully',
+        status: HttpStatus.OK,
+      });
+    } catch (error) {
+      console.error('Task completion and rating failed:', error);
+      return create_response(response, {
+        message: error.message || 'Failed to complete and rate the task',
         status: error.status || HttpStatus.BAD_REQUEST,
       });
     }
