@@ -1,11 +1,13 @@
 import { Module } from '@nestjs/common';
+import { ConfigModule } from '@nestjs/config'; // ✅ Import ConfigModule
+import { RouterModule } from '@nestjs/core';
+
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { DatabaseModule } from './database/database.module';
 import { KeycloakModule } from './keycloak/keycloak.module';
 import { CommunityModule } from './community/community.module';
 import { NotificationsModule } from './notifications/notifications.module';
-import { RouterModule } from '@nestjs/core';
 import { AuthModule } from './community/auth/auth.module';
 import { ProfileModule } from './community/profile/profile.module';
 import { SkillsModule } from './skills/skills.module';
@@ -15,6 +17,10 @@ import { TasksModule } from './community/tasks/tasks.module';
 
 @Module({
   imports: [
+    ConfigModule.forRoot({
+      isGlobal: true,
+      envFilePath: '.env',
+    }),
     RouterModule.register([
       {
         path: 'community',

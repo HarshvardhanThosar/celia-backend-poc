@@ -15,3 +15,9 @@ export enum ScoreAssignmentStatus {
   ASSIGNED = 'assigned',
   REJECTED = 'rejected',
 }
+
+export enum TaskPriority {
+  LOW = 'low',
+  MEDIUM = 'medium',
+  HIGH = 'high',
+}

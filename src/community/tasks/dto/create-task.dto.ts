@@ -13,7 +13,7 @@ import {
 } from 'class-validator';
 import { Type } from 'class-transformer';
 import { LocationDTO } from './location.dto';
-import { ScoreAssignmentStatus } from '../enums/task-status.enum';
+import { ScoreAssignmentStatus, TaskPriority } from '../enums/task-status.enum';
 
 export class CreateTaskDTO {
   @ApiProperty({
@@ -93,4 +93,13 @@ export class CreateTaskDTO {
   @IsEnum(ScoreAssignmentStatus)
   @IsOptional()
   score_assignment_status?: ScoreAssignmentStatus;
+
+  @ApiProperty({
+    description: 'Task priority level',
+    enum: TaskPriority,
+    example: TaskPriority.MEDIUM,
+  })
+  @IsEnum(TaskPriority)
+  @IsOptional()
+  priority?: TaskPriority = TaskPriority.MEDIUM;
 }

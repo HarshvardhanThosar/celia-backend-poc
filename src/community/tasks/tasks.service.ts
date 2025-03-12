@@ -117,21 +117,33 @@ export class TasksService {
         completes_at,
         task_type,
         media: file_urls,
-        score_assignment_status:
-          task_data.score_assignment_status || ScoreAssignmentStatus.UNASSIGNED,
+        score_assignment_status: ScoreAssignmentStatus.UNASSIGNED,
       });
 
       await this.task_repository.save(new_task);
 
-      const score_calculated = await axios.post(
-        'http://localhost:5000/score',
-        {},
+      const score_response = await axios.post(
+        'http://localhost:5000/task/calculate-score',
+        { task_id: new_task._id.toString() },
       );
+
+      if (score_response.data) {
+        const { min_score, max_score } = score_response.data;
+
+        await this.task_repository.update(new_task._id, {
+          min_score,
+          max_score,
+          score_assignment_status: ScoreAssignmentStatus.ASSIGNED,
+        });
+
+        new_task.min_score = min_score;
+        new_task.max_score = max_score;
+      }
+
+      return new_task;
     } catch (error) {
       console.error('Task creation failed:', error);
-      throw new BadRequestException(
-        'Failed to create task due to an internal error',
-      );
+      throw new BadRequestException('Failed to create task');
     }
   }
 
@@ -147,12 +159,9 @@ export class TasksService {
 
     if (!task) throw new NotFoundException('Task not found');
     if (task.owner_id !== user_id)
-      throw new ForbiddenException(
-        'You are not authorized to update this task',
-      );
+      throw new ForbiddenException('Unauthorized to update this task');
 
     let task_type = task.task_type;
-
     if (update_data.task_type) {
       const updated_task_type = await this.task_type_repository.findOneBy({
         _id: new ObjectId(update_data.task_type),
@@ -175,24 +184,32 @@ export class TasksService {
         task_type,
         media: updated_media,
         updated_at: new Date(),
-        score_assignment_status:
-          update_data.score_assignment_status || task.score_assignment_status,
-        ...(update_data.starts_at && {
-          starts_at: new Date(update_data.starts_at),
-        }),
-        ...(update_data.completes_at && {
-          completes_at: new Date(update_data.completes_at),
-        }),
       };
 
       Object.assign(task, updated_data);
       await this.task_repository.save(task);
+
+      const score_response = await axios.post(
+        'http://localhost:5000/task/calculate-score',
+        { task_id: task._id.toString() },
+      );
+
+      if (score_response.data) {
+        const { min_score, max_score } = score_response.data;
+        await this.task_repository.update(task._id, {
+          min_score,
+          max_score,
+          score_assignment_status: ScoreAssignmentStatus.ASSIGNED,
+        });
+
+        task.min_score = min_score;
+        task.max_score = max_score;
+      }
+
       return task;
     } catch (error) {
       console.error('Task update failed:', error);
-      throw new BadRequestException(
-        'Failed to update task due to an internal error',
-      );
+      throw new BadRequestException('Failed to update task');
     }
   }
 

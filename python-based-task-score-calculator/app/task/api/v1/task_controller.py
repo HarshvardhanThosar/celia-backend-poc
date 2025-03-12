@@ -13,6 +13,9 @@ retail_router = APIRouter(prefix="/task", tags=["Task APIs"])
 IRELAND_LOCATION = (53.425046, -7.944624)
 
 
+distance_cache = {}
+
+
 class TaskScoreRequest(BaseModel):
     task_id: str
 
@@ -60,12 +63,13 @@ async def get_task_type_skills_score(task_type_id: str) -> int:
 
 
 def get_distance_km(lat1, lon1, lat2, lon2):
-    """
-    Uses a free API to calculate the real-world driving distance (km) between two locations.
-    """
+    """Uses a cache to store GPS distances and avoids unnecessary API calls."""
+    location_key = (lat2, lon2)
+
+    if location_key in distance_cache:
+        return distance_cache[location_key]  
 
     try:
-
         API_KEY = "5b3ce3597851110001cf62482b67bae7dd504ae6bf893c0dad6eeb26"
         url = f"https://api.openrouteservice.org/v2/directions/driving-car?api_key={API_KEY}&start={lon1},{lat1}&end={lon2},{lat2}"
 
@@ -73,7 +77,9 @@ def get_distance_km(lat1, lon1, lat2, lon2):
         response_data = response.json()
 
         if "routes" in response_data and len(response_data["routes"]) > 0:
-            return response_data["routes"][0]["summary"]["distance"] / 1000
+            distance_km = response_data["routes"][0]["summary"]["distance"] / 1000
+            distance_cache[location_key] = distance_km  
+            return distance_km
         else:
             return None
 
@@ -91,7 +97,6 @@ async def calculate_task_score(payload: TaskScoreRequest):
         if not task:
             raise HTTPException(status_code=404, detail="Task not found")
 
-
         if isinstance(task["starts_at"], datetime):
             task["starts_at"] = task["starts_at"].timestamp()
 
@@ -101,7 +106,6 @@ async def calculate_task_score(payload: TaskScoreRequest):
         start_date = datetime.fromtimestamp(task["starts_at"], tz=timezone.utc)
         end_date = datetime.fromtimestamp(task["completes_at"], tz=timezone.utc)
         days_factor = max((end_date - start_date).days, 1)
-
 
         skill_complexity = round_to_factor(
             await get_task_type_skills_score(task["task_type"]) * constants.SKILL_COMPLEXITY_FACTOR,
@@ -122,7 +126,6 @@ async def calculate_task_score(payload: TaskScoreRequest):
             calculate_description_complexity_score(task["description"]) * constants.DESCRIPTION_COMPLEXITY_FACTOR,
             constants.ROUNDING_FACTOR
         )
-
 
         distance_score = 0
         if not task.get("is_remote", True) and "location" in task:
@@ -147,6 +150,15 @@ async def calculate_task_score(payload: TaskScoreRequest):
 
         min_score += random_hook
         max_score += random_hook
+
+        
+        priority = task.get("priority", "medium").lower()
+        if priority == "low":
+            min_score = round_to_factor(min_score * 0.9, constants.ROUNDING_FACTOR)  
+            max_score = round_to_factor(max_score * 0.9, constants.ROUNDING_FACTOR)
+        elif priority == "high":
+            min_score = round_to_factor(min_score * 1.15, constants.ROUNDING_FACTOR)  
+            max_score = round_to_factor(max_score * 1.15, constants.ROUNDING_FACTOR)
 
         return {
             "task_id": payload.task_id,

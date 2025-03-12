@@ -113,14 +113,14 @@ export class TasksController {
       );
       return create_response(response, {
         data: created_task,
-        message: 'Task created successfully',
+        message: 'Task created and scored successfully',
         status: HttpStatus.CREATED,
       });
     } catch (error) {
       console.error('Task creation failed:', error);
       return create_response(response, {
         message: error.message || 'Failed to create task',
-        status: error.status || HttpStatus.BAD_REQUEST,
+        status: HttpStatus.BAD_REQUEST,
       });
     }
   }
@@ -146,14 +146,14 @@ export class TasksController {
       );
       return create_response(response, {
         data: updated_task,
-        message: 'Task updated successfully',
+        message: 'Task updated and re-scored successfully',
         status: HttpStatus.OK,
       });
     } catch (error) {
       console.error('Task update failed:', error);
       return create_response(response, {
         message: error.message || 'Failed to update task',
-        status: error.status || HttpStatus.BAD_REQUEST,
+        status: HttpStatus.BAD_REQUEST,
       });
     }
   }

@@ -1,10 +1,10 @@
-version: '3.9'
-
 services:
   postgres:
     image: postgres:15
     container_name: keycloak-db
     restart: always
+    env_file:
+      - .env
     environment:
       POSTGRES_DB: ${POSTGRES_DB}
       POSTGRES_USER: ${POSTGRES_USER}
@@ -20,6 +20,8 @@ services:
     restart: always
     depends_on:
       - postgres
+    env_file:
+      - .env
     environment:
       KC_DB: postgres
       KC_DB_URL: ${KC_DB_URL}
@@ -43,12 +45,14 @@ services:
     restart: always
     depends_on:
       - keycloak
-    ports:
-      - '3000:3000'
     env_file:
       - .env
     environment:
-      - NODE_ENV=production
+      NODE_ENV: production
+      MONGO_URI: ${MONGO_URI}
+      MONGO_DATABASE: ${MONGO_DATABASE}
+    ports:
+      - '3000:3000'
 
   python-task-score:
     build: python-based-task-score-calculator
@@ -56,11 +60,13 @@ services:
     restart: always
     depends_on:
       - postgres
+    env_file:
+      - .env
+    environment:
+      MONGO_URI: ${MONGO_URI}
+      MONGO_DATABASE: ${MONGO_DATABASE}
     ports:
       - '8000:8000'
-    environment:
-      - MONGO_URI=${MONGO_URI}
-      - MONGO_DATABASE=${MONGO_DATABASE}
 
 volumes:
   keycloak_data:

@@ -11,6 +11,7 @@ import { TaskType } from 'src/task_types/entities/task_type.entity';
 import {
   ParticipationStatus,
   ScoreAssignmentStatus,
+  TaskPriority,
   TaskStatus,
 } from '../enums/task-status.enum';
 
@@ -61,6 +62,13 @@ export class Task {
 
   @Column({ type: 'enum', enum: TaskStatus, default: TaskStatus.ACTIVE })
   status: TaskStatus;
+
+  @Column({
+    type: 'enum',
+    enum: TaskPriority,
+    default: TaskPriority.MEDIUM, // Default to medium priority
+  })
+  priority: TaskPriority;
 
   @Column({
     type: 'json',

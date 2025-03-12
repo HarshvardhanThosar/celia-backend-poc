@@ -1,7 +1,7 @@
 import { ApiProperty, PartialType } from '@nestjs/swagger';
 import { CreateTaskDTO } from './create-task.dto';
 import { IsArray, IsOptional, IsEnum } from 'class-validator';
-import { ScoreAssignmentStatus } from '../enums/task-status.enum';
+import { ScoreAssignmentStatus, TaskPriority } from '../enums/task-status.enum';
 
 export class UpdateTaskDTO extends PartialType(CreateTaskDTO) {
   @ApiProperty({
@@ -58,4 +58,13 @@ export class UpdateTaskDTO extends PartialType(CreateTaskDTO) {
   @IsEnum(ScoreAssignmentStatus)
   @IsOptional()
   score_assignment_status?: ScoreAssignmentStatus;
+
+  @ApiProperty({
+    description: 'Task priority level',
+    enum: TaskPriority,
+    example: TaskPriority.MEDIUM,
+  })
+  @IsEnum(TaskPriority)
+  @IsOptional()
+  priority?: TaskPriority = TaskPriority.MEDIUM;
 }
