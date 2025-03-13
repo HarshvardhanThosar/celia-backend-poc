@@ -66,7 +66,10 @@ export class AuthService {
         );
       }
 
-      await this.profile_service.create_profile(_response.id);
+      await this.profile_service.create_profile(
+        _response.id,
+        _register_auth_dto.tnc_accepted,
+      );
 
       return _user;
     } catch (error) {

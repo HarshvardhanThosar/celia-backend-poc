@@ -11,13 +11,13 @@ export class PushTokenService {
 
   //   constructor(
   //     @InjectRepository(PushToken)
-  //     private readonly pushTokenRepository: Repository<PushToken>,
+  //     private readonly push_token_repository: Repository<PushToken>,
   //   ) {
   //     this.expo = new Expo();
   //   }
 
   //   async sendNotificationToUser(user_id: UserID, title: string, body: string) {
-  //     const user_token = await this.pushTokenRepository.findOne({
+  //     const user_token = await this.push_token_repository.findOne({
   //       where: { user_id },
   //     });
 
@@ -43,33 +43,31 @@ export class PushTokenService {
 
   constructor(
     @InjectRepository(PushToken)
-    private readonly pushTokenRepository: Repository<PushToken>,
+    private readonly push_token_repository: Repository<PushToken>,
   ) {}
 
   async register_push_token(user_id: UserID, push_token: string) {
-    const existingToken = await this.pushTokenRepository.findOne({
+    const _existing_token = await this.push_token_repository.findOne({
       where: { user_id },
     });
 
-    if (existingToken) {
-      existingToken.push_token = push_token; // Update the token if it already exists
-      await this.pushTokenRepository.save(existingToken);
+    if (_existing_token) {
+      _existing_token.push_token = push_token;
+      return await this.push_token_repository.save(_existing_token);
     } else {
-      const newPushToken = this.pushTokenRepository.create({
+      const _new_push_token = this.push_token_repository.create({
         user_id,
         push_token,
       });
-      await this.pushTokenRepository.save(newPushToken);
+      return await this.push_token_repository.save(_new_push_token);
     }
-
-    return { message: 'Push token registered successfully!' };
   }
 
   async get_user_push_token(user_id: UserID) {
-    return await this.pushTokenRepository.findOne({ where: { user_id } });
+    return await this.push_token_repository.findOne({ where: { user_id } });
   }
 
   async delete_user_push_token(user_id: UserID) {
-    return await this.pushTokenRepository.delete({ user_id });
+    return await this.push_token_repository.delete({ user_id });
   }
 }

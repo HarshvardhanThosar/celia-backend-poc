@@ -12,7 +12,10 @@ export class ProfileService {
     private readonly profile_repository: MongoRepository<Profile>,
   ) {}
 
-  async create_profile(user_id: UserID): Promise<Profile> {
+  async create_profile(
+    user_id: UserID,
+    tnc_accepted: boolean,
+  ): Promise<Profile> {
     const profile = this.profile_repository.create({
       _id: user_id,
       score: 0,
@@ -20,6 +23,7 @@ export class ProfileService {
       tasks_participated: [],
       tasks_created: [],
       profile_image: undefined,
+      tnc_accepted,
     });
     return await this.profile_repository.save(profile);
   }

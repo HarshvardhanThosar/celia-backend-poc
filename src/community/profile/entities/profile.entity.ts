@@ -12,6 +12,9 @@ export class Profile {
   @ObjectIdColumn()
   _id: ObjectId;
 
+  @Column({ type: 'bool', default: false })
+  tnc_accepted: boolean;
+
   @Column({ default: 0 })
   score: number;
 

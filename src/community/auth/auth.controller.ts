@@ -26,6 +26,12 @@ export class AuthController {
   @HttpCode(HttpStatus.CREATED)
   @Public()
   async register(@Body() _register_auth_dto: RegisterAuthDTO, @Res() response) {
+    const { tnc_accepted } = _register_auth_dto;
+    if (!tnc_accepted)
+      throw new HttpException(
+        'Cannot register without accepting the terms and conditions.',
+        HttpStatus.BAD_REQUEST,
+      );
     try {
       const _user = await this.auth_service.register(_register_auth_dto);
       return create_response(response, {
