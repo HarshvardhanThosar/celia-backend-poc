@@ -33,9 +33,9 @@ export class TasksController {
   @Get('/rating-options')
   @HttpCode(HttpStatus.OK)
   @ApiBearerAuth()
-  get_rating_options(@Res() response) {
+  async get_rating_options(@Res() response) {
     return create_response(response, {
-      data: this.tasks_service.get_rating_options(),
+      data: await this.tasks_service.get_rating_options(),
       message: 'Rating options fetched successfully',
       status: HttpStatus.OK,
     });
@@ -44,9 +44,9 @@ export class TasksController {
   @Get('/volunteer-count-options')
   @HttpCode(HttpStatus.OK)
   @ApiBearerAuth()
-  get_volunteer_options(@Res() response) {
+  async get_volunteer_options(@Res() response) {
     return create_response(response, {
-      data: this.tasks_service.get_volunteer_options(),
+      data: await this.tasks_service.get_volunteer_options(),
       message: 'Volunteer count options fetched successfully',
       status: HttpStatus.OK,
     });
@@ -55,9 +55,9 @@ export class TasksController {
   @Get('/hours-options')
   @HttpCode(HttpStatus.OK)
   @ApiBearerAuth()
-  get_hours_options(@Res() response) {
+  async get_hours_options(@Res() response) {
     return create_response(response, {
-      data: this.tasks_service.get_hours_options(),
+      data: await this.tasks_service.get_hours_options(),
       message: 'Hours options fetched successfully',
       status: HttpStatus.OK,
     });
@@ -66,9 +66,9 @@ export class TasksController {
   @Get('/task-types')
   @HttpCode(HttpStatus.OK)
   @ApiBearerAuth()
-  fetch_task_types(@Res() response) {
+  async fetch_task_types(@Res() response) {
     return create_response(response, {
-      data: this.tasks_service.fetch_task_types(),
+      data: await this.tasks_service.fetch_task_types(),
       message: 'Task types fetched successfully',
       status: HttpStatus.OK,
     });
@@ -77,9 +77,9 @@ export class TasksController {
   @Get('/')
   @HttpCode(HttpStatus.OK)
   @ApiBearerAuth()
-  get_tasks(@Res() response) {
+  async get_tasks(@Res() response) {
     return create_response(response, {
-      data: this.tasks_service.get_tasks(),
+      data: await this.tasks_service.get_tasks(),
       message: 'Tasks fetched successfully',
       status: HttpStatus.OK,
     });

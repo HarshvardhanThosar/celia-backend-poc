@@ -86,15 +86,6 @@ export class CreateTaskDTO {
   media?: Express.Multer.File[];
 
   @ApiProperty({
-    description: 'Score assignment status',
-    enum: ScoreAssignmentStatus,
-    example: ScoreAssignmentStatus.UNASSIGNED,
-  })
-  @IsEnum(ScoreAssignmentStatus)
-  @IsOptional()
-  score_assignment_status?: ScoreAssignmentStatus;
-
-  @ApiProperty({
     description: 'Task priority level',
     enum: TaskPriority,
     example: TaskPriority.MEDIUM,

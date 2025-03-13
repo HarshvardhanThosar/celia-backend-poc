@@ -51,15 +51,6 @@ export class UpdateTaskDTO extends PartialType(CreateTaskDTO) {
   media?: Express.Multer.File[];
 
   @ApiProperty({
-    description: 'Updated score assignment status',
-    enum: ScoreAssignmentStatus,
-    required: false,
-  })
-  @IsEnum(ScoreAssignmentStatus)
-  @IsOptional()
-  score_assignment_status?: ScoreAssignmentStatus;
-
-  @ApiProperty({
     description: 'Task priority level',
     enum: TaskPriority,
     example: TaskPriority.MEDIUM,

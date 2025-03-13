@@ -48,7 +48,7 @@ export class TasksService {
 
   async get_hours_options() {
     return Array.from({ length: 6 }, (_, i) => ({
-      name: `${i + 1} hours`,
+      name: i + 1 == 1 ? `${i + 1} hour` : `${i + 1} hours`,
       value: i + 1,
     }));
   }
@@ -96,7 +96,9 @@ export class TasksService {
 
     if (!task_type) throw new NotFoundException('Task type not found');
 
-    const file_urls = media_files.map((file) => `/uploads/${file.filename}`);
+    const file_urls = media_files
+      ? media_files.map((file) => `/uploads/${file.filename}`)
+      : [];
 
     try {
       const starts_at = new Date(task_data.starts_at);
@@ -125,7 +127,7 @@ export class TasksService {
       await this.task_repository.save(new_task);
 
       const score_response = await axios.post(
-        'http://localhost:5000/task/calculate-score',
+        'http://python-task-score:8000/api/v1/task/calculate-score',
         { task_id: new_task._id.toString() },
       );
 
@@ -192,7 +194,7 @@ export class TasksService {
       await this.task_repository.save(task);
 
       const score_response = await axios.post(
-        'http://localhost:5000/task/calculate-score',
+        'http://python-task-score:8000/api/v1/task/calculate-score',
         { task_id: task._id.toString() },
       );
 

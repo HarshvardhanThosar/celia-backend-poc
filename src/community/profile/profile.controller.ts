@@ -28,11 +28,27 @@ export class ProfileController {
   @ApiBearerAuth()
   async get_profile(@KeycloakUser() user: KeycloakAuthUser, @Res() response) {
     try {
+      const {
+        email,
+        email_verified,
+        family_name,
+        given_name,
+        name,
+        preferred_username,
+      } = user;
       const _profile = await this.profile_service.get_profile(user.sub);
       return create_response(response, {
         status: HttpStatus.OK,
         message: 'Profile retrieved successfully!',
-        data: _profile,
+        data: {
+          email,
+          email_verified,
+          family_name,
+          given_name,
+          name,
+          preferred_username,
+          ..._profile,
+        },
       });
     } catch (error) {
       throw new HttpException(error?.message, HttpStatus.NOT_FOUND);
@@ -51,13 +67,29 @@ export class ProfileController {
     @Res() response,
   ) {
     try {
+      const {
+        email,
+        email_verified,
+        family_name,
+        given_name,
+        name,
+        preferred_username,
+      } = user;
       const _profile = await this.profile_service.update_profile(user.sub, {
         profile_image: update_profile_dto.profile_image,
       });
       return create_response(response, {
         status: HttpStatus.OK,
         message: 'Profile updated successfully!',
-        data: _profile,
+        data: {
+          email,
+          email_verified,
+          family_name,
+          given_name,
+          name,
+          preferred_username,
+          ..._profile,
+        },
       });
     } catch (error) {
       throw new HttpException(error?.message, HttpStatus.BAD_REQUEST);

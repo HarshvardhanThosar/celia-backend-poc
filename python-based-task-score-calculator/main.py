@@ -1,4 +1,4 @@
-# main.py
+# python-based-task-score-calculator/main.py
 
 from app.main import app
 

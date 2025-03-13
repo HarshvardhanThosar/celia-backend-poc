@@ -1,4 +1,4 @@
-# app/main.py
+# python-based-task-score-calculator/app/main.py
 
 from fastapi import FastAPI
 from contextlib import asynccontextmanager
@@ -7,7 +7,7 @@ from contextlib import asynccontextmanager
 from app.core.database import connect_db, close_db
 
 # R O U T E R S
-from app.task.api.v1.main import v1_router as task_v1_router
+from app.task.api.v1.main import v1_router
 
 from fastapi.middleware.cors import CORSMiddleware
 
@@ -15,7 +15,6 @@ from fastapi.middleware.cors import CORSMiddleware
 async def lifespan(app: FastAPI):
     """Handle application startup & shutdown for MongoDB connection."""
     connect_db()
-    # await insert_static_data()
     yield
     close_db()
 
@@ -29,4 +28,12 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-app.include_router(task_v1_router)
+@app.get("/")
+def root():
+    return {"message": "Root endpoint"}
+
+@app.get("/api/")
+def api_root():
+    return {"message": "API root is working!"}
+
+app.include_router(v1_router)

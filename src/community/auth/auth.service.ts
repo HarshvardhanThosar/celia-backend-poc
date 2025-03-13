@@ -6,6 +6,8 @@ import { LoginAuthDTO } from './dto/login-auth.dto';
 import { KeycloakAdminService } from 'src/keycloak/admin/keycloak-admin.service';
 import axios from 'axios';
 import { LogoutAuthDTO } from './dto/logout-auth.dto';
+import { ProfileService } from '../profile/profile.service';
+import { RefreshAuthDTO } from './dto/refresh-auth.dto';
 
 @Injectable()
 export class AuthService {
@@ -14,6 +16,7 @@ export class AuthService {
   constructor(
     private readonly keycloak_admin_service: KeycloakAdminService,
     private readonly config_service: ConfigService,
+    private readonly profile_service: ProfileService,
   ) {}
 
   async register(_register_auth_dto: RegisterAuthDTO) {
@@ -63,6 +66,8 @@ export class AuthService {
         );
       }
 
+      await this.profile_service.create_profile(_response.id);
+
       return _user;
     } catch (error) {
       this.logger.error(
@@ -93,7 +98,7 @@ export class AuthService {
         ),
         clientSecret: this.config_service.get<string>(
           'KEYCLOAK_CLIENT_SECRET',
-          'LjJH6RcoZ7q1dN4z1eg2BtFthFVo7yRG',
+          'fq3Fvcan8eWHZqZqSbLsVoj0YrdtW6CU',
         ),
         username,
         password,
@@ -141,7 +146,7 @@ export class AuthService {
     }
   }
 
-  async refresh(refresh_token: string, user?: any) {
+  async refresh(_refresh_auth_dto: RefreshAuthDTO) {
     const keycloakAdmin = new KeycloakAdminClient({
       baseUrl: this.config_service.get<string>('KEYCLOAK_URL'),
       realmName: this.config_service.get<string>('KEYCLOAK_REALM'),
@@ -156,9 +161,9 @@ export class AuthService {
         ),
         clientSecret: this.config_service.get<string>(
           'KEYCLOAK_CLIENT_SECRET',
-          'LjJH6RcoZ7q1dN4z1eg2BtFthFVo7yRG',
+          'fq3Fvcan8eWHZqZqSbLsVoj0YrdtW6CU',
         ),
-        refreshToken: refresh_token,
+        refreshToken: _refresh_auth_dto.refresh_token,
       });
 
       return {
@@ -166,7 +171,6 @@ export class AuthService {
         refresh_token: keycloakAdmin.refreshToken,
         token_type: 'Bearer',
         scope: 'openid profile email',
-        user,
       };
     } catch (error) {
       this.logger.error(
@@ -207,7 +211,7 @@ export class AuthService {
       'client_secret',
       this.config_service.get<string>(
         'KEYCLOAK_CLIENT_SECRET',
-        'LjJH6RcoZ7q1dN4z1eg2BtFthFVo7yRG',
+        'fq3Fvcan8eWHZqZqSbLsVoj0YrdtW6CU',
       ),
     );
     params.append('refresh_token', refresh_token);

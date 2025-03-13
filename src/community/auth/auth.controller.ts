@@ -57,16 +57,9 @@ export class AuthController {
   @Post('refresh')
   @HttpCode(HttpStatus.OK)
   @ApiBearerAuth()
-  async refresh(
-    @KeycloakUser() user: KeycloakAuthUser,
-    @Body() _refresh_auth_dto: RefreshAuthDTO,
-    @Res() response,
-  ) {
+  async refresh(@Body() _refresh_auth_dto: RefreshAuthDTO, @Res() response) {
     try {
-      const _auth = await this.auth_service.refresh(
-        _refresh_auth_dto.refresh_token,
-        user,
-      );
+      const _auth = await this.auth_service.refresh(_refresh_auth_dto);
       return create_response(response, {
         status: HttpStatus.OK,
         message: 'Token refreshed successfully!',

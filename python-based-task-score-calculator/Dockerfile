@@ -18,4 +18,4 @@ RUN pip install watchfiles
 EXPOSE 8000
 
 # Run with watchfiles for auto-restart on code change
-CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]
+CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]
