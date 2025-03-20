@@ -1,4 +1,4 @@
-# python-based-task-score-calculator/app/main.py
+# fastapi/app/main.py
 
 from fastapi import FastAPI
 from contextlib import asynccontextmanager

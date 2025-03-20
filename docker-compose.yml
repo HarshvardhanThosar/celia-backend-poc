@@ -66,7 +66,7 @@ services:
     command: npm run start:dev # Hot reload enabled
 
   python-task-score:
-    build: python-based-task-score-calculator
+    build: fastapi
     container_name: python-task-score
     restart: unless-stopped
     depends_on:

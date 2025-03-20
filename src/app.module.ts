@@ -14,6 +14,7 @@ import { SkillsModule } from './skills/skills.module';
 import { TaskTypesModule } from './task_types/task_types.module';
 import { MasterModule } from './master/master.module';
 import { TasksModule } from './community/tasks/tasks.module';
+import { RetailModule } from './community/retail/retail.module';
 
 @Module({
   imports: [
@@ -37,6 +38,10 @@ import { TasksModule } from './community/tasks/tasks.module';
           {
             path: '/',
             module: TasksModule,
+          },
+          {
+            path: '/',
+            module: RetailModule,
           },
         ],
       },

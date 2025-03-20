@@ -45,22 +45,25 @@ export class PushTokenService {
     @InjectRepository(PushToken)
     private readonly push_token_repository: Repository<PushToken>,
   ) {}
-
   async register_push_token(user_id: UserID, push_token: string) {
-    const _existing_token = await this.push_token_repository.findOne({
+    let _existing_token = await this.push_token_repository.findOne({
       where: { user_id },
     });
 
     if (_existing_token) {
+      if (_existing_token.push_token === push_token) {
+        return _existing_token;
+      }
       _existing_token.push_token = push_token;
       return await this.push_token_repository.save(_existing_token);
-    } else {
-      const _new_push_token = this.push_token_repository.create({
-        user_id,
-        push_token,
-      });
-      return await this.push_token_repository.save(_new_push_token);
     }
+
+    const _new_push_token = this.push_token_repository.create({
+      user_id,
+      push_token,
+    });
+
+    return await this.push_token_repository.save(_new_push_token);
   }
 
   async get_user_push_token(user_id: UserID) {

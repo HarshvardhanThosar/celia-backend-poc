@@ -1,4 +1,4 @@
-# python-based-task-score-calculator/main.py
+# fastapi/main.py
 
 from app.main import app
 
