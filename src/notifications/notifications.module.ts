@@ -12,6 +12,6 @@ import { KeycloakModule } from 'src/keycloak/keycloak.module';
   imports: [TypeOrmModule.forFeature([Notification, PushToken])],
   controllers: [NotificationsController, PushTokenController],
   providers: [NotificationsService, PushTokenService],
-  exports: [NotificationsService],
+  exports: [NotificationsService, PushTokenService],
 })
 export class NotificationsModule {}

@@ -64,7 +64,7 @@ export class TasksService {
   async get_tasks(page_number = 0, page_size = 10) {
     const skip = page_number * page_size;
     const [tasks, total_count] = await this.task_repository.findAndCount({
-      where: { status: TaskStatus.ACTIVE },
+      // where: { status: TaskStatus.ACTIVE },
       order: { created_at: 'DESC' },
       skip,
       take: page_size,

@@ -1,11 +1,10 @@
 import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { ObjectId } from 'mongodb';
+import { MongoRepository } from 'typeorm';
 import { Skill } from 'src/skills/entities/skill.entity';
-import { SkillStatus } from 'src/skills/enums/skill-status.enum';
 import { TaskType } from 'src/task_types/entities/task_type.entity';
+import { SkillStatus } from 'src/skills/enums/skill-status.enum';
 import { TaskTypeStatus } from 'src/task_types/enums/task-type-status.enum';
-import { Repository } from 'typeorm';
 
 @Injectable()
 export class MasterService implements OnModuleInit {
@@ -13,186 +12,305 @@ export class MasterService implements OnModuleInit {
 
   constructor(
     @InjectRepository(Skill)
-    private skill_repository: Repository<Skill>,
+    private skill_repository: MongoRepository<Skill>,
 
     @InjectRepository(TaskType)
-    private task_type_repository: Repository<TaskType>,
+    private task_type_repository: MongoRepository<TaskType>,
   ) {}
 
+  private sleep(ms: number) {
+    return new Promise((resolve) => setTimeout(resolve, ms));
+  }
+
   async onModuleInit() {
-    await this.insert_static_data();
+    const MAX_RETRIES = 11;
+    const RETRY_DELAY_MS = 2000; // 2 seconds
+    let attempt = 0;
+
+    while (attempt < MAX_RETRIES) {
+      try {
+        this.logger.log(
+          `Seeding master data (attempt ${attempt + 1}/${MAX_RETRIES})...`,
+        );
+        const skillsMap = await this.insert_skills();
+        await this.insert_task_types(skillsMap);
+        this.logger.log('Master data inserted successfully!');
+        break; // Exit loop on success
+      } catch (error) {
+        attempt++;
+        this.logger.error(`Master data insertion failed: ${error.message}`);
+        if (attempt < MAX_RETRIES) {
+          this.logger.warn(`🔁 Retrying in ${RETRY_DELAY_MS / 1000}s...`);
+          await this.sleep(RETRY_DELAY_MS);
+        } else {
+          this.logger.error('Max retries reached. Seeding aborted.');
+        }
+      }
+    }
   }
 
   private async insert_skill(
     name: string,
     description: string,
     score: number,
-  ): Promise<ObjectId> {
-    const existingSkill = await this.skill_repository.findOne({
-      where: { name },
-    });
-    if (existingSkill) return existingSkill._id;
+  ): Promise<Skill> {
+    const existing = await this.skill_repository.findOne({ where: { name } });
+    if (existing) return existing;
 
     const skill = this.skill_repository.create({
-      _id: new ObjectId(),
       name,
       description,
+      score,
       status: SkillStatus.ACTIVE,
       created_at: new Date(),
       updated_at: new Date(),
-      score,
     });
 
-    const saved_skill = await this.skill_repository.save(skill);
-    if (!saved_skill || !saved_skill._id) {
-      throw new Error(`Failed to insert skill: ${name}`);
+    const saved = await this.skill_repository.save(skill);
+    this.logger.debug(`Inserted skill: ${name}`);
+    return saved;
+  }
+
+  private async insert_skills(): Promise<Map<string, Skill>> {
+    const skillNames = [
+      'First Aid/CPR',
+      'Patient Care',
+      'Health Monitoring',
+      'Mental Health Support',
+      'Medication Management',
+      'Digital Literacy',
+      'Social Media Management',
+      'Database Management',
+      'Web Development',
+      'Multimedia Production',
+      'Cooking/Food Preparation',
+      'Gardening/Landscaping',
+      'Carpentry/Construction',
+      'Event Planning',
+      'Transportation Services',
+      'Communication',
+      'Active Listening',
+      'Problem-Solving',
+      'Empathy',
+      'Time Management',
+      'Conflict Resolution',
+      'Mentoring',
+      'Cultural Sensitivity',
+      'Leadership',
+      'Project Management',
+    ];
+
+    const skillsMap = new Map<string, Skill>();
+    for (const name of skillNames) {
+      const skill = await this.insert_skill(name, name, 50);
+      skillsMap.set(name, skill);
     }
-    return saved_skill._id;
+    return skillsMap;
   }
 
   private async insert_task_type(
     name: string,
     description: string,
-    skill_ids: ObjectId[],
+    skillNames: string[],
+    skillsMap: Map<string, Skill>,
   ) {
-    if (!skill_ids || skill_ids.length === 0) {
-      throw new Error(`No skill IDs provided for task type: ${name}`);
-    }
-    const existingTaskType = await this.task_type_repository.findOne({
+    const existing = await this.task_type_repository.findOne({
       where: { name },
     });
-    if (existingTaskType) return existingTaskType._id;
+    if (existing) {
+      this.logger.warn(`Task type already exists: ${name}`);
+      return;
+    }
+
+    const missingSkills = skillNames.filter((name) => !skillsMap.has(name));
+    if (missingSkills.length) {
+      throw new Error(
+        `Missing skills for task type "${name}": ${missingSkills.join(', ')}`,
+      );
+    }
 
     const taskType = this.task_type_repository.create({
-      _id: new ObjectId(),
       name,
       description,
+      skills: skillNames.map((name) => skillsMap.get(name)!),
       status: TaskTypeStatus.ACTIVE,
-      skills: skill_ids.map((id) => ({ _id: id }) as any),
       created_at: new Date(),
       updated_at: new Date(),
     });
+
     await this.task_type_repository.save(taskType);
+    this.logger.debug(`Inserted task type: ${name}`);
   }
 
-  private async insert_static_data() {
-    try {
-      const firstAidId = await this.insert_skill(
-        'First Aid',
-        'Basic emergency medical care training',
-        50,
-      );
-      const teachingId = await this.insert_skill(
-        'Teaching',
-        'Providing educational support and tutoring',
-        50,
-      );
-      const leadershipId = await this.insert_skill(
-        'Leadership',
-        'Guiding and managing teams effectively',
-        50,
-      );
-      const eventMgmtId = await this.insert_skill(
-        'Event Management',
-        'Planning and organizing community events',
-        50,
-      );
-      const disasterReliefId = await this.insert_skill(
-        'Disaster Relief',
-        'Assisting in emergency disaster situations',
-        50,
-      );
-      const fundraisingId = await this.insert_skill(
-        'Fundraising',
-        'Managing and executing fundraising initiatives',
-        50,
-      );
-      const animalWelfareId = await this.insert_skill(
-        'Animal Welfare',
-        'Rescuing and rehabilitating animals',
-        50,
-      );
-      const elderlyCareId = await this.insert_skill(
-        'Elderly Care',
-        'Providing assistance to elderly citizens',
-        50,
-      );
-      const technicalSupportId = await this.insert_skill(
-        'Technical Support',
-        'Helping communities with technology',
-        50,
-      );
-      const environmentalConservationId = await this.insert_skill(
-        'Environmental Conservation',
-        'Preserving the environment',
-        50,
-      );
+  private async insert_task_types(skillsMap: Map<string, Skill>) {
+    const taskTypes = [
+      {
+        name: 'Elderly Care',
+        description: 'Supporting senior citizens',
+        skills: [
+          'First Aid/CPR',
+          'Patient Care',
+          'Health Monitoring',
+          'Medication Management',
+          'Cooking/Food Preparation',
+          'Transportation Services',
+          'Communication',
+          'Active Listening',
+          'Empathy',
+          'Time Management',
+        ],
+      },
+      {
+        name: 'Childcare and Youth Development',
+        description: 'Supporting children and youth',
+        skills: [
+          'First Aid/CPR',
+          'Digital Literacy',
+          'Cooking/Food Preparation',
+          'Communication',
+          'Active Listening',
+          'Problem-Solving',
+          'Empathy',
+          'Mentoring',
+          'Cultural Sensitivity',
+          'Leadership',
+        ],
+      },
+      {
+        name: 'Healthcare Support',
+        description: 'Supplementing medical care',
+        skills: [
+          'First Aid/CPR',
+          'Patient Care',
+          'Health Monitoring',
+          'Mental Health Support',
+          'Medication Management',
+          'Database Management',
+          'Communication',
+          'Active Listening',
+          'Empathy',
+          'Time Management',
+        ],
+      },
+      {
+        name: 'Educational Support',
+        description: 'Enhancing learning',
+        skills: [
+          'Digital Literacy',
+          'Multimedia Production',
+          'Communication',
+          'Active Listening',
+          'Problem-Solving',
+          'Mentoring',
+          'Cultural Sensitivity',
+          'Leadership',
+          'Project Management',
+          'Time Management',
+        ],
+      },
+      {
+        name: 'Environmental Conservation',
+        description: 'Protecting nature',
+        skills: [
+          'Digital Literacy',
+          'Social Media Management',
+          'Gardening/Landscaping',
+          'Carpentry/Construction',
+          'Event Planning',
+          'Problem-Solving',
+          'Leadership',
+          'Project Management',
+          'Communication',
+          'Cultural Sensitivity',
+        ],
+      },
+      {
+        name: 'Animal Welfare',
+        description: 'Protecting and caring for animals',
+        skills: [
+          'First Aid/CPR',
+          'Health Monitoring',
+          'Social Media Management',
+          'Event Planning',
+          'Communication',
+          'Empathy',
+          'Time Management',
+          'Problem-Solving',
+          'Project Management',
+        ],
+      },
+      {
+        name: 'Community Development',
+        description: 'Building strong communities',
+        skills: [
+          'Digital Literacy',
+          'Social Media Management',
+          'Web Development',
+          'Carpentry/Construction',
+          'Gardening/Landscaping',
+          'Event Planning',
+          'Leadership',
+          'Project Management',
+          'Communication',
+          'Problem-Solving',
+        ],
+      },
+      {
+        name: 'Crisis Response',
+        description: 'Emergency and disaster support',
+        skills: [
+          'First Aid/CPR',
+          'Mental Health Support',
+          'Digital Literacy',
+          'Transportation Services',
+          'Communication',
+          'Problem-Solving',
+          'Empathy',
+          'Leadership',
+          'Time Management',
+          'Conflict Resolution',
+        ],
+      },
+      {
+        name: 'Specialized Support Services',
+        description: 'Tailored support for vulnerable populations',
+        skills: [
+          'Patient Care',
+          'Health Monitoring',
+          'Mental Health Support',
+          'Transportation Services',
+          'Communication',
+          'Active Listening',
+          'Empathy',
+          'Cultural Sensitivity',
+          'Problem-Solving',
+          'Conflict Resolution',
+        ],
+      },
+      {
+        name: 'Arts and Cultural Preservation',
+        description: 'Creative and cultural volunteering',
+        skills: [
+          'Digital Literacy',
+          'Social Media Management',
+          'Web Development',
+          'Multimedia Production',
+          'Event Planning',
+          'Communication',
+          'Cultural Sensitivity',
+          'Leadership',
+          'Project Management',
+          'Mentoring',
+        ],
+      },
+    ];
 
+    for (const taskType of taskTypes) {
       await this.insert_task_type(
-        'Medical Assistance',
-        'Helping patients and medical staff',
-        [firstAidId],
-      );
-      await this.insert_task_type(
-        'Educational Support',
-        'Tutoring and mentoring students',
-        [teachingId],
-      );
-      await this.insert_task_type(
-        'Community Service',
-        'General volunteering for community welfare',
-        [leadershipId, eventMgmtId],
-      );
-      await this.insert_task_type(
-        'Emergency Response',
-        'Helping during crises like floods or fires',
-        [firstAidId, disasterReliefId],
-      );
-      await this.insert_task_type(
-        'Environmental Cleanup',
-        'Cleaning public spaces and parks',
-        [environmentalConservationId],
-      );
-      await this.insert_task_type(
-        'Fundraising Events',
-        'Organizing charity and donation drives',
-        [fundraisingId],
-      );
-      await this.insert_task_type(
-        'Animal Rescue',
-        'Saving and rehabilitating stray animals',
-        [animalWelfareId],
-      );
-      await this.insert_task_type(
-        'Elderly Assistance',
-        'Helping elderly citizens with daily tasks',
-        [elderlyCareId],
-      );
-      await this.insert_task_type(
-        'Health Awareness Campaign',
-        'Spreading awareness on health issues',
-        [teachingId, leadershipId],
-      );
-      await this.insert_task_type(
-        'Food Distribution',
-        'Helping in food drives and soup kitchens',
-        [eventMgmtId],
-      );
-      await this.insert_task_type(
-        'Shelter Assistance',
-        'Supporting homeless shelters and rehabilitation centers',
-        [leadershipId],
-      );
-      await this.insert_task_type(
-        'Technical Training',
-        'Providing IT and vocational training to communities',
-        [technicalSupportId],
-      );
-
-      this.logger.log('Static skills and task types inserted successfully!');
-    } catch (error) {
-      this.logger.error(
-        `Failed to insert static skills and task types: ${JSON.stringify(error)}`,
+        taskType.name,
+        taskType.description,
+        taskType.skills,
+        skillsMap,
       );
     }
   }
