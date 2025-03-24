@@ -1,5 +1,5 @@
 import { Module } from '@nestjs/common';
-import { ConfigModule } from '@nestjs/config'; // ✅ Import ConfigModule
+import { ConfigModule } from '@nestjs/config';
 import { RouterModule } from '@nestjs/core';
 
 import { AppController } from './app.controller';
@@ -15,9 +15,12 @@ import { TaskTypesModule } from './task_types/task_types.module';
 import { MasterModule } from './master/master.module';
 import { TasksModule } from './community/tasks/tasks.module';
 import { RetailModule } from './community/retail/retail.module';
+import { ScheduleModule } from '@nestjs/schedule';
+import { AttendanceCronModule } from './cron/attendance-cron/attendance-cron.module';
 
 @Module({
   imports: [
+    ScheduleModule.forRoot(),
     ConfigModule.forRoot({
       isGlobal: true,
       envFilePath: '.env',
@@ -53,6 +56,7 @@ import { RetailModule } from './community/retail/retail.module';
     SkillsModule,
     TaskTypesModule,
     MasterModule,
+    AttendanceCronModule,
   ],
   controllers: [AppController],
   providers: [AppService],

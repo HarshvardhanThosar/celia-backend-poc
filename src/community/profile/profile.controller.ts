@@ -7,6 +7,7 @@ import {
   HttpException,
   HttpCode,
   Res,
+  Post,
 } from '@nestjs/common';
 import { ProfileService } from './profile.service';
 import { KeycloakUser } from 'nest-keycloak-connect';
@@ -14,6 +15,7 @@ import { ApiBearerAuth } from '@nestjs/swagger';
 import { UpdateProfileDTO } from './dto/update-profile.dto';
 import { KeycloakAuthUser } from 'src/keycloak/types/user';
 import { create_response } from 'src/common/utils/response.util';
+import { RegisterSkillsDTO } from './dto/register-skills.dto';
 
 @Controller('profile')
 @ApiBearerAuth()
@@ -93,6 +95,30 @@ export class ProfileController {
       });
     } catch (error) {
       throw new HttpException(error?.message, HttpStatus.BAD_REQUEST);
+    }
+  }
+
+  @Post('register-skills')
+  @HttpCode(HttpStatus.OK)
+  @ApiBearerAuth()
+  async register_skills(
+    @KeycloakUser() user: KeycloakAuthUser,
+    @Body() { skill_ids }: RegisterSkillsDTO,
+    @Res() response,
+  ) {
+    try {
+      const updated_profile =
+        await this.profile_service.register_preferred_skills(
+          user.sub,
+          skill_ids,
+        );
+      return create_response(response, {
+        status: HttpStatus.OK,
+        message: 'Skills registered successfully!',
+        data: updated_profile.skills,
+      });
+    } catch (error) {
+      throw new HttpException(error.message, HttpStatus.BAD_REQUEST);
     }
   }
 }

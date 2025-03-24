@@ -33,6 +33,16 @@ export class Profile {
   @Column({ nullable: true })
   profile_image: string;
 
+  @Column({
+    type: 'json',
+    default: [],
+  })
+  skills: {
+    skill_id: string;
+    skill_name: string;
+    hours: number;
+  }[];
+
   @CreateDateColumn()
   created_at: Date;
 

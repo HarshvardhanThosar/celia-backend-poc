@@ -47,11 +47,21 @@ export class Task {
   @Column({ nullable: true })
   location?: { latitude: number; longitude: number };
 
-  @Column()
-  min_score: number;
+  @Column({
+    type: 'json',
+    default: [],
+  })
+  score_breakdown: {
+    key: string;
+    label: string;
+    score: number;
+  }[];
 
-  @Column()
-  max_score: number;
+  @Column({ type: 'json', default: {} })
+  daily_attendance_codes: Record<string, string>; // e.g., { "2025-03-23": "8945" }
+
+  @Column({ type: 'json', default: {} })
+  attendance_log: Record<string, string[]>; // e.g., { "2025-03-23": ["user_id_1", "user_id_2"] }
 
   @Column({
     type: 'enum',
@@ -66,7 +76,7 @@ export class Task {
   @Column({
     type: 'enum',
     enum: TaskPriority,
-    default: TaskPriority.MEDIUM, // Default to medium priority
+    default: TaskPriority.MEDIUM,
   })
   priority: TaskPriority;
 

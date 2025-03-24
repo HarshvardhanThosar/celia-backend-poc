@@ -23,6 +23,7 @@ import { KeycloakUser } from 'nest-keycloak-connect';
 import { KeycloakAuthUser } from 'src/keycloak/types/user';
 import { multerOptions } from 'src/configs/multer.config';
 import { CompleteAndRateTaskDTO } from './dto/complete-and-rate-task.dto';
+import { MarkAttendanceDTO } from './dto/mark-attendance';
 
 @Controller('tasks')
 export class TasksController {
@@ -161,6 +162,58 @@ export class TasksController {
     }
   }
 
+  @Post('/:task_id/request-participation')
+  @HttpCode(HttpStatus.OK)
+  @ApiBearerAuth()
+  async request_participation(
+    @Param('task_id') task_id: string,
+    @KeycloakUser() user: KeycloakAuthUser,
+    @Res() response,
+  ) {
+    try {
+      const result = await this.tasks_service.request_participation(
+        task_id,
+        user.sub,
+      );
+      return create_response(response, {
+        message: result.message,
+        status: HttpStatus.OK,
+      });
+    } catch (error) {
+      return create_response(response, {
+        message: error.message,
+        status: error.status || HttpStatus.BAD_REQUEST,
+      });
+    }
+  }
+
+  @Post('/:task_id/accept-participation/:participant_id')
+  @HttpCode(HttpStatus.OK)
+  @ApiBearerAuth()
+  async accept_participation(
+    @Param('task_id') task_id: string,
+    @Param('participant_id') participant_id: string,
+    @KeycloakUser() user: KeycloakAuthUser,
+    @Res() response,
+  ) {
+    try {
+      const result = await this.tasks_service.accept_participation(
+        task_id,
+        participant_id,
+        user.sub,
+      );
+      return create_response(response, {
+        message: result.message,
+        status: HttpStatus.OK,
+      });
+    } catch (error) {
+      return create_response(response, {
+        message: error.message,
+        status: error.status || HttpStatus.BAD_REQUEST,
+      });
+    }
+  }
+
   @Patch('/:task_id/complete-and-rate')
   @HttpCode(HttpStatus.OK)
   @ApiBearerAuth()
@@ -185,6 +238,33 @@ export class TasksController {
       this.logger.error('Task completion and rating failed:', error);
       return create_response(response, {
         message: error.message || 'Failed to complete and rate the task',
+        status: error.status || HttpStatus.BAD_REQUEST,
+      });
+    }
+  }
+
+  @Post('/mark-attendance')
+  @HttpCode(HttpStatus.OK)
+  @ApiBearerAuth()
+  async mark_attendance(
+    @Body() data: MarkAttendanceDTO,
+    @KeycloakUser() user: KeycloakAuthUser,
+    @Res() response,
+  ) {
+    try {
+      const result = await this.tasks_service.mark_attendance(
+        data.task_id,
+        user.sub,
+        data.code,
+      );
+      return create_response(response, {
+        message: result.message,
+        status: HttpStatus.OK,
+        data: result,
+      });
+    } catch (error) {
+      return create_response(response, {
+        message: error.message,
         status: error.status || HttpStatus.BAD_REQUEST,
       });
     }

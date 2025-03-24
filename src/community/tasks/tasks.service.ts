@@ -19,6 +19,7 @@ import { CreateTaskDTO } from './dto/create-task.dto';
 import { UpdateTaskDTO } from './dto/update-task.dto';
 import axios from 'axios';
 import { CompleteAndRateTaskDTO } from './dto/complete-and-rate-task.dto';
+import { ProfileService } from '../profile/profile.service';
 
 @Injectable()
 export class TasksService {
@@ -30,6 +31,8 @@ export class TasksService {
 
     @InjectRepository(TaskType)
     private task_type_repository: Repository<TaskType>,
+
+    private profile_service: ProfileService,
   ) {}
 
   async get_rating_options() {
@@ -70,7 +73,28 @@ export class TasksService {
       take: page_size,
     });
 
-    return { tasks, count: tasks.length, total_count };
+    const user_ids = new Set<string>();
+    for (const task of tasks) {
+      user_ids.add(task.owner_id);
+      (task.participants || []).forEach((p) => user_ids.add(p.user_id));
+    }
+
+    const enriched = await this.profile_service.enrich_users([...user_ids]);
+
+    const enriched_tasks = tasks.map((task) => ({
+      ...task,
+      owner_details: enriched[task.owner_id],
+      participants: (task.participants || []).map((p) => ({
+        ...p,
+        ...enriched[p.user_id],
+      })),
+    }));
+
+    return {
+      tasks: enriched_tasks,
+      count: enriched_tasks.length,
+      total_count,
+    };
   }
 
   async get_task_by_id(task_id: string) {
@@ -81,8 +105,21 @@ export class TasksService {
     if (!task) {
       throw new NotFoundException('Task not found');
     }
+    const user_ids = [
+      task.owner_id,
+      ...(task.participants || []).map((p) => p.user_id),
+    ];
 
-    return task;
+    const enriched = await this.profile_service.enrich_users(user_ids);
+
+    return {
+      ...task,
+      owner_details: enriched[task.owner_id],
+      participants: (task.participants || []).map((p) => ({
+        ...p,
+        ...enriched[p.user_id],
+      })),
+    };
   }
 
   async create_task(
@@ -107,13 +144,15 @@ export class TasksService {
       if (isNaN(starts_at.getTime()) || isNaN(completes_at.getTime())) {
         throw new BadRequestException('Invalid start or completion date');
       }
+      const daily_attendance_codes = this.generate_attendance_codes(
+        starts_at,
+        completes_at,
+      );
 
       const new_task = this.task_repository.create({
         ...task_data,
         owner_id: user_id,
         status: TaskStatus.ACTIVE,
-        min_score: 0,
-        max_score: 0,
         participants: [],
         created_at: new Date(),
         updated_at: new Date(),
@@ -122,6 +161,8 @@ export class TasksService {
         task_type,
         media: file_urls,
         score_assignment_status: ScoreAssignmentStatus.UNASSIGNED,
+        daily_attendance_codes,
+        attendance_log: {},
       });
 
       await this.task_repository.save(new_task);
@@ -132,16 +173,10 @@ export class TasksService {
       );
 
       if (score_response.data) {
-        const { min_score, max_score } = score_response.data;
-
         await this.task_repository.update(new_task._id, {
-          min_score,
-          max_score,
+          score_breakdown: score_response.data.breakdown,
           score_assignment_status: ScoreAssignmentStatus.ASSIGNED,
         });
-
-        new_task.min_score = min_score;
-        new_task.max_score = max_score;
       }
 
       return new_task;
@@ -199,15 +234,10 @@ export class TasksService {
       );
 
       if (score_response.data) {
-        const { min_score, max_score } = score_response.data;
         await this.task_repository.update(task._id, {
-          min_score,
-          max_score,
+          score_breakdown: score_response.data.breakdown,
           score_assignment_status: ScoreAssignmentStatus.ASSIGNED,
         });
-
-        task.min_score = min_score;
-        task.max_score = max_score;
       }
 
       return task;
@@ -320,6 +350,55 @@ export class TasksService {
     return { message: 'Participation accepted successfully' };
   }
 
+  private generate_attendance_codes(
+    start: Date,
+    end: Date,
+  ): Record<string, string> {
+    const codes: Record<string, string> = {};
+    const current = new Date(start);
+
+    while (current <= end) {
+      const dateKey = current.toISOString().split('T')[0]; // yyyy-mm-dd
+      codes[dateKey] = Math.floor(1000 + Math.random() * 9000).toString();
+      current.setDate(current.getDate() + 1);
+    }
+
+    return codes;
+  }
+
+  async mark_attendance(task_id: string, user_id: string, code: string) {
+    const task = await this.task_repository.findOneBy({
+      _id: new ObjectId(task_id),
+    });
+    if (!task) throw new NotFoundException('Task not found');
+
+    const today = new Date().toISOString().split('T')[0];
+    const expected_code = task.daily_attendance_codes?.[today];
+
+    if (!expected_code)
+      throw new BadRequestException('No attendance code set for today');
+    if (expected_code !== code)
+      throw new ForbiddenException('Incorrect attendance code');
+
+    const accepted = task.participants.some(
+      (p) => p.user_id === user_id && p.status === ParticipationStatus.ACCEPTED,
+    );
+
+    if (!accepted)
+      throw new ForbiddenException('You are not an accepted participant');
+
+    const logged = task.attendance_log?.[today] || [];
+    if (logged.includes(user_id)) {
+      return { message: 'Already marked attendance for today' };
+    }
+
+    if (!task.attendance_log) task.attendance_log = {};
+    task.attendance_log[today] = [...logged, user_id];
+
+    await this.task_repository.save(task);
+
+    return { message: 'Attendance marked successfully', date: today };
+  }
   async remove_participation(
     task_id: string,
     participant_id: string,

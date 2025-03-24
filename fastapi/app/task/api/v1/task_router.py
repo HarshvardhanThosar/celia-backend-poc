@@ -9,10 +9,12 @@ import requests
 from app import constants
 from app.core.database import Collection, get_collection
 
+
 task_router = APIRouter(prefix="/task", tags=["Task APIs"])
 IRELAND_LOCATION = (53.425046, -7.944624)
 
 distance_cache = {}
+
 
 class TaskScoreRequest(BaseModel):
     task_id: str
@@ -32,16 +34,15 @@ async def get_task_type_skills_score(task_type_id):
     try:
         task_types_collection = get_collection(Collection.TASK_TYPES)
         skills_collection = get_collection(Collection.SKILLS)
-        
-        # Ensure task_type_id is valid
+
         if isinstance(task_type_id, dict) and "_id" in task_type_id:
             task_type_id = task_type_id["_id"]
-        
+
         if not isinstance(task_type_id, (str, ObjectId)):
             raise ValueError("Invalid task_type_id format")
-        
+
         task_type_id = ObjectId(task_type_id) if isinstance(task_type_id, str) else task_type_id
-        
+
         task_type = await task_types_collection.find_one({"_id": task_type_id})
         if not task_type:
             return 0
@@ -66,7 +67,7 @@ async def get_task_type_skills_score(task_type_id):
 def get_distance_km(lat1, lon1, lat2, lon2):
     location_key = (lat2, lon2)
     if location_key in distance_cache:
-        return distance_cache[location_key]  
+        return distance_cache[location_key]
     try:
         API_KEY = "5b3ce3597851110001cf62482b67bae7dd504ae6bf893c0dad6eeb26"
         url = f"https://api.openrouteservice.org/v2/directions/driving-car?api_key={API_KEY}&start={lon1},{lat1}&end={lon2},{lat2}"
@@ -74,7 +75,7 @@ def get_distance_km(lat1, lon1, lat2, lon2):
         response_data = response.json()
         if "routes" in response_data and len(response_data["routes"]) > 0:
             distance_km = response_data["routes"][0]["summary"]["distance"] / 1000
-            distance_cache[location_key] = distance_km  
+            distance_cache[location_key] = distance_km
             return distance_km
         else:
             return None
@@ -89,7 +90,7 @@ async def calculate_task_score(payload: TaskScoreRequest):
 
         if not task:
             raise HTTPException(status_code=404, detail="Task not found")
-        
+
         start_date = task["starts_at"] if isinstance(task["starts_at"], datetime) else datetime.fromtimestamp(task["starts_at"], tz=timezone.utc)
         end_date = task["completes_at"] if isinstance(task["completes_at"], datetime) else datetime.fromtimestamp(task["completes_at"], tz=timezone.utc)
         days_factor = max((end_date - start_date).days, 1)
@@ -122,21 +123,17 @@ async def calculate_task_score(payload: TaskScoreRequest):
                 distance_score = round_to_factor(distance_km * constants.DISTANCE_FACTOR, constants.ROUNDING_FACTOR)
 
         random_hook = round_to_factor(random.randint(10, 50) * 10, constants.ROUNDING_FACTOR)
-        min_score = round_to_factor((skill_complexity + volunteer_factor + hours_factor + description_complexity + distance_score) * constants.MIN_RATING, constants.ROUNDING_FACTOR)
-        additional_component = round_to_factor(min_score * 0.25, constants.ROUNDING_FACTOR)
-        max_score = round_to_factor(min_score + (additional_component * (constants.MAX_RATING - 1)), constants.ROUNDING_FACTOR)
-        min_score += random_hook
-        max_score += random_hook
 
-        priority = task.get("priority", "medium").lower()
-        if priority == "low":
-            min_score = round_to_factor(min_score * 0.9, constants.ROUNDING_FACTOR)  
-            max_score = round_to_factor(max_score * 0.9, constants.ROUNDING_FACTOR)
-        elif priority == "high":
-            min_score = round_to_factor(min_score * 1.15, constants.ROUNDING_FACTOR)  
-            max_score = round_to_factor(max_score * 1.15, constants.ROUNDING_FACTOR)
+        score_breakdown = [
+            {"label": "Skill Complexity", "key": "skill_complexity", "score": skill_complexity},
+            {"label": "Volunteer Requirement", "key": "volunteer_factor", "score": volunteer_factor},
+            {"label": "Hours Required", "key": "hours_factor", "score": hours_factor},
+            {"label": "Description Complexity", "key": "description_complexity", "score": description_complexity},
+            {"label": "Distance to Location", "key": "distance_score", "score": distance_score},
+            {"label": "Random Hook", "key": "random_hook", "score": random_hook},
+        ]
 
-        return {"task_id": payload.task_id, "min_score": min_score, "max_score": max_score}
+        return {"task_id": payload.task_id, "score_breakdown": score_breakdown}
 
     except HTTPException:
         raise

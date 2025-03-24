@@ -50,4 +50,12 @@ export class KeycloakAdminService {
       };
     }
   }
+
+  async get_user_by_id(user_id: string) {
+    await this.authenticate_admin();
+    return this.keycloakAdmin.users.findOne({
+      id: user_id,
+      realm: this.config_service.get<string>('KEYCLOAK_REALM'),
+    });
+  }
 }

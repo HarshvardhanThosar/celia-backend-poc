@@ -62,7 +62,6 @@ services:
       - '3000:3000'
     volumes:
       - .:/usr/src/app # Mount local code into the container
-      - /usr/src/app/node_modules # Ignore node_modules (keep dependencies inside the container)
     command: npm run start:dev # Hot reload enabled
 
   python-task-score:

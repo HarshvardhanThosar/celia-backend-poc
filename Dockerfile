@@ -1,21 +1,21 @@
-# Use the latest Node.js version
+# Use Node.js Alpine base image
 FROM node:22.14.0-alpine
 
 # Set working directory
 WORKDIR /usr/src/app
 
-# Install dependencies first (use caching)
+# Install dependencies
 COPY package*.json ./
 RUN npm install --silent
 
-# Copy only source code (avoid overwriting node_modules)
+# Install Nest CLI globally and ensure it's executable
+RUN npm install -g @nestjs/cli && chmod +x /usr/local/bin/nest
+
+# Copy source code
 COPY . .
 
-# Install nodemon for hot-reloading
-RUN npm install -g nodemon
-
-# Expose necessary ports
+# Expose the app port
 EXPOSE 3000
 
-# Use nodemon for live-reloading during development
+# Run in dev mode
 CMD ["npm", "run", "start:dev"]
