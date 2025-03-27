@@ -27,6 +27,9 @@ export class RetailItem {
   @Column('int')
   quantity: number;
 
+  @Column('int')
+  weight: number;
+
   @Column('date')
   manufactured_date: Date;
 

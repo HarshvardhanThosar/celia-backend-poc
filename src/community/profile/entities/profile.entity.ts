@@ -18,6 +18,9 @@ export class Profile {
   @Column({ default: 0 })
   score: number;
 
+  @Column({ default: 0 })
+  coins: number;
+
   @Column()
   wallet_id: string;
 

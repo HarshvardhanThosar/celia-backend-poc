@@ -20,6 +20,9 @@ import { UpdateTaskDTO } from './dto/update-task.dto';
 import axios from 'axios';
 import { CompleteAndRateTaskDTO } from './dto/complete-and-rate-task.dto';
 import { ProfileService } from '../profile/profile.service';
+import { PushTokenService } from 'src/notifications/push-token.service';
+import { NotificationsService } from 'src/notifications/notifications.service';
+import { NotificationType } from 'src/notifications/types/NotificationTypes';
 
 @Injectable()
 export class TasksService {
@@ -33,6 +36,8 @@ export class TasksService {
     private task_type_repository: Repository<TaskType>,
 
     private profile_service: ProfileService,
+    private push_token_service: PushTokenService,
+    private notifications_service: NotificationsService,
   ) {}
 
   async get_rating_options() {
@@ -140,7 +145,11 @@ export class TasksService {
     try {
       const starts_at = new Date(task_data.starts_at);
       const completes_at = new Date(task_data.completes_at);
-
+      if (starts_at.getFullYear() < 2000) {
+        throw new BadRequestException(
+          'Timestamp seems to be in seconds. Expected milliseconds.',
+        );
+      }
       if (isNaN(starts_at.getTime()) || isNaN(completes_at.getTime())) {
         throw new BadRequestException('Invalid start or completion date');
       }
@@ -167,18 +176,48 @@ export class TasksService {
 
       await this.task_repository.save(new_task);
 
-      const score_response = await axios.post(
-        'http://python-task-score:8000/api/v1/task/calculate-score',
-        { task_id: new_task._id.toString() },
-      );
+      const score_response = await axios.post<{
+        task_id: string;
+        score_breakdown: {
+          label: string;
+          key: string;
+          score: number;
+        }[];
+      }>('http://python-task-score:8000/api/v1/task/calculate-score', {
+        task_id: new_task._id.toString(),
+      });
 
       if (score_response.data) {
         await this.task_repository.update(new_task._id, {
-          score_breakdown: score_response.data.breakdown,
+          score_breakdown: score_response.data.score_breakdown,
           score_assignment_status: ScoreAssignmentStatus.ASSIGNED,
         });
       }
+      await this.profile_service.add_task_creation(
+        user_id,
+        new_task._id.toString(),
+      );
 
+      const all_profiles = await this.profile_service.get_all_profiles();
+      for (const profile of all_profiles) {
+        if (profile._id.toString() === user_id) continue;
+        const token_record = await this.push_token_service.get_user_push_token(
+          profile._id.toString(),
+        );
+        if (token_record?.push_token) {
+          await this.notifications_service.create({
+            push_token: token_record.push_token,
+            notification_type: NotificationType.COMMUNITY_TASK_AVAILABLE,
+            title: 'New Task Available! 🎯',
+            body: {
+              message: `A new community task has just been posted. Check it out!`,
+              short_message: 'New Task Alert!',
+              url: `celia://community-tasks/${new_task._id}`,
+            },
+            replacable: false,
+          });
+        }
+      }
       return new_task;
     } catch (error) {
       this.logger.error('Task creation failed:', error);
@@ -272,7 +311,7 @@ export class TasksService {
 
     task.feedback_note = complete_and_rate_data.feedback_note || undefined;
     task.rating = complete_and_rate_data.rating;
-
+    task.status = TaskStatus.COMPLETED;
     task.updated_at = new Date();
     await this.task_repository.save(task);
     return task;
@@ -316,6 +355,24 @@ export class TasksService {
     });
     await this.task_repository.save(task);
 
+    const token_record = await this.push_token_service.get_user_push_token(
+      task.owner_id.toString(),
+    );
+    if (token_record?.push_token) {
+      await this.notifications_service.create({
+        push_token: token_record.push_token,
+        notification_type:
+          NotificationType.COMMUNITY_TASK_PARTICIPATION_REQUESTED,
+        title: 'New participation request',
+        body: {
+          message: 'Someone requested to join your task!',
+          short_message: 'New request received!',
+          url: `celia://community-tasks/${task_id}`,
+        },
+        replacable: false,
+      });
+    }
+
     return { message: 'Participation request sent successfully' };
   }
 
@@ -346,8 +403,81 @@ export class TasksService {
     participant.status = ParticipationStatus.ACCEPTED;
     participant.updated_at = Date.now();
     await this.task_repository.save(task);
+    await this.profile_service.add_task_participation(
+      participant_id,
+      task._id.toString(),
+    );
+    const token_record = await this.push_token_service.get_user_push_token(
+      participant_id.toString(),
+    );
+    if (token_record?.push_token) {
+      await this.notifications_service.create({
+        push_token: token_record.push_token,
+        notification_type:
+          NotificationType.COMMUNITY_TASK_PARTICIPATION_ACCEPTED,
+        title: 'You have been accepted!',
+        body: {
+          message: 'Your participation in a task has been accepted.',
+          short_message: 'You’re in!',
+          url: `celia://community-tasks/${task_id}`,
+        },
+        replacable: false,
+      });
+    }
 
     return { message: 'Participation accepted successfully' };
+  }
+
+  async reject_participation(
+    task_id: string,
+    participant_id: string,
+    owner_id: string,
+  ) {
+    const task = await this.task_repository.findOneBy({
+      _id: new ObjectId(task_id),
+    });
+
+    if (!task) throw new NotFoundException('Task not found');
+    if (task.owner_id !== owner_id)
+      throw new ForbiddenException(
+        'Only the task owner can reject participants',
+      );
+
+    const participant = task.participants.find(
+      (p) => p.user_id === participant_id,
+    );
+
+    if (!participant) throw new NotFoundException('Participant not found');
+
+    // If participant is accepted, change to rejected
+    if (participant.status === ParticipationStatus.ACCEPTED) {
+      participant.status = ParticipationStatus.REJECTED;
+      participant.updated_at = Date.now();
+    }
+
+    // If they were only in REQUESTED state, we leave them as is
+    await this.task_repository.save(task);
+
+    // Notify participant
+    const token_record = await this.push_token_service.get_user_push_token(
+      participant_id.toString(),
+    );
+    if (token_record?.push_token) {
+      await this.notifications_service.create({
+        push_token: token_record.push_token,
+        notification_type:
+          NotificationType.COMMUNITY_TASK_PARTICIPATION_REJECTED,
+        title: 'Your participation was rejected',
+        body: {
+          message: 'Your participation request for a task was rejected.',
+          short_message: 'Request rejected',
+          url: `celia://community-tasks/${task_id}`,
+        },
+        replacable: false,
+      });
+    }
+
+    return { message: 'Participation rejected successfully' };
   }
 
   private generate_attendance_codes(
@@ -384,8 +514,19 @@ export class TasksService {
       (p) => p.user_id === user_id && p.status === ParticipationStatus.ACCEPTED,
     );
 
-    if (!accepted)
-      throw new ForbiddenException('You are not an accepted participant');
+    if (!accepted) {
+      task.participants.push({
+        user_id,
+        status: ParticipationStatus.ACCEPTED,
+        requested_at: Date.now(),
+        updated_at: Date.now(),
+      });
+
+      await this.profile_service.add_task_participation(
+        user_id,
+        task._id.toString(),
+      );
+    }
 
     const logged = task.attendance_log?.[today] || [];
     if (logged.includes(user_id)) {
@@ -396,9 +537,18 @@ export class TasksService {
     task.attendance_log[today] = [...logged, user_id];
 
     await this.task_repository.save(task);
+    const attended_days = Object.values(task.attendance_log || {}).filter(
+      (users) => users.includes(user_id),
+    ).length;
+    await this.profile_service.update_skill_hours_from_attendance(
+      user_id,
+      task._id.toString(),
+      attended_days,
+    );
 
     return { message: 'Attendance marked successfully', date: today };
   }
+
   async remove_participation(
     task_id: string,
     participant_id: string,

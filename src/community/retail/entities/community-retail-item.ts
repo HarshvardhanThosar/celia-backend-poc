@@ -12,6 +12,8 @@ export class CommunityRetailItem {
 
   sku_id: string;
 
+  weight: string | number;
+
   quantity: number;
 
   expiry_date: Date;

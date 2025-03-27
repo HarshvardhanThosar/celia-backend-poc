@@ -24,9 +24,12 @@ export class TaskType {
   @Column({ nullable: true })
   description?: string;
 
-  @ManyToMany(() => Skill, { cascade: true })
-  @JoinTable()
-  skills: Skill[];
+  @Column({ type: 'json', default: [] })
+  skills: {
+    _id: ObjectId;
+    name: string;
+    score: number;
+  }[];
 
   @Column({
     type: 'enum',

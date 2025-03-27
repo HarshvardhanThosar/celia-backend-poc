@@ -38,7 +38,7 @@ export class AttendanceService {
       await this.distribute_rewards(task);
       task.status = TaskStatus.COMPLETED;
       await this.task_repository.save(task);
-      this.logger.log(`✅ Rewards distributed for task: ${task._id}`);
+      this.logger.log(`Rewards distributed for task: ${task._id}`);
     }
   }
 
@@ -94,7 +94,7 @@ export class AttendanceService {
       profile.skills = Array.from(skill_map_profile.values());
       await this.profile_repository.save(profile);
       this.logger.log(
-        `🎯 Updated skills for participant ${participant.user_id} in task ${task._id}`,
+        `Updated skills for participant ${participant.user_id} in task ${task._id}`,
       );
     }
   }

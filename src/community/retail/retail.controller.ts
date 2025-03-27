@@ -13,6 +13,8 @@ import {
 import { RetailService } from './retail.service';
 import { PurchaseItemDTO } from './dto/purchase-item.dto';
 import { ApiBearerAuth } from '@nestjs/swagger';
+import { KeycloakUser } from 'nest-keycloak-connect';
+import { KeycloakAuthUser } from 'src/keycloak/types/user';
 
 @Controller('retail')
 export class RetailController {
@@ -45,10 +47,15 @@ export class RetailController {
   async purchase_item(
     @Param('item_id') itemId: string,
     @Body() body: PurchaseItemDTO,
+    @KeycloakUser() user: KeycloakAuthUser,
   ) {
     if (body.quantity <= 0) {
       throw new BadRequestException('Quantity must be greater than zero');
     }
-    return await this.retailService.purchase_item(itemId, body.quantity);
+    return await this.retailService.purchase_item(
+      itemId,
+      body.quantity,
+      user.sub,
+    );
   }
 }

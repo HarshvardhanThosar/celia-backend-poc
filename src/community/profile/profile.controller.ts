@@ -39,6 +39,12 @@ export class ProfileController {
         preferred_username,
       } = user;
       const _profile = await this.profile_service.get_profile(user.sub);
+
+      // Calculate streak
+      const streak = await this.profile_service.calculate_attendance_streak(
+        user.sub,
+      );
+
       return create_response(response, {
         status: HttpStatus.OK,
         message: 'Profile retrieved successfully!',
@@ -50,6 +56,7 @@ export class ProfileController {
           name,
           preferred_username,
           ..._profile,
+          streak,
         },
       });
     } catch (error) {

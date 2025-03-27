@@ -1,11 +1,2 @@
 name,price,category,sku_id,quantity,manufactured_date,expiry_date,description,thumbnail,retailer_id,retail_batch_id,currency,status,created_at,updated_at
-Milk,2.5,Dairy,SKU12345,10,2024-01-15,2024-06-15,Fresh dairy milk,https://example.com/milk.jpg,TESCO789,BATCH001,EUR,ACTIVE,2025-03-15 16:04:38.502051,2025-03-15 16:04:38.502619
-Bread,1.2,Bakery,SKU54321,20,2024-02-01,2024-05-01,Whole wheat bread,https://example.com/bread.jpg,TESCO789,BATCH001,EUR,ACTIVE,2025-03-15 16:04:38.502051,2025-03-15 16:04:38.502619
-Eggs,3.0,Poultry,SKU98765,30,2024-03-10,2024-07-10,Farm fresh eggs,https://example.com/eggs.jpg,TESCO789,BATCH001,EUR,ACTIVE,2025-03-15 16:04:38.502051,2025-03-15 16:04:38.502619
-Apples,2.0,Fruits,SKU67890,15,2024-01-20,2024-04-20,Juicy red apples,https://example.com/apples.jpg,TESCO789,BATCH001,EUR,ACTIVE,2025-03-15 16:04:38.502051,2025-03-15 16:04:38.502619
-Rice,5.5,Grains,SKU24680,50,2024-02-15,2025-02-15,Long grain rice,https://example.com/rice.jpg,TESCO789,BATCH001,EUR,ACTIVE,2025-03-15 16:04:38.502051,2025-03-15 16:04:38.502619
-Butter,4.0,Dairy,SKU13579,25,2024-03-01,2024-08-01,Creamy butter,https://example.com/butter.jpg,TESCO789,BATCH001,EUR,ACTIVE,2025-03-15 16:04:38.502051,2025-03-15 16:04:38.502619
-Chicken,6.5,Meat,SKU11223,12,2024-01-05,2024-03-05,Organic chicken,https://example.com/chicken.jpg,TESCO789,BATCH001,EUR,ACTIVE,2025-03-15 16:04:38.502051,2025-03-15 16:04:38.502619
-Fish,7.0,Seafood,SKU44556,10,2024-01-10,2024-03-10,Fresh salmon,https://example.com/fish.jpg,TESCO789,BATCH001,EUR,ACTIVE,2025-03-15 16:04:38.502051,2025-03-15 16:04:38.502619
-Cheese,3.8,Dairy,SKU99887,18,2024-02-28,2024-07-28,Aged cheddar cheese,https://example.com/cheese.jpg,TESCO789,BATCH001,EUR,ACTIVE,2025-03-15 16:04:38.502051,2025-03-15 16:04:38.502619
-Carrots,1.5,Vegetables,SKU55443,22,2024-01-12,2024-04-12,Organic carrots,https://example.com/carrots.jpg,TESCO789,BATCH001,EUR,ACTIVE,2025-03-15 16:04:38.502051,2025-03-15 16:04:38.502619
+Oriental Vegetable Stir Fry,1.59,Fresh Food,SKU12345,5,2024-01-15,2024-06-15,Fresh dairy milk,https://dm.emea.cms.aldi.cx/is/image/aldiprodeu/product/jpg/scaleWidth/1296/a8422bd4-9ce1-4082-98fe-713a8a0bc63b/Oriental%20Vegetable%20Stir%20Fry,ALDIO789,BATCH001,EUR,ACTIVE,2025-03-15 16:04:38.502051,2025-03-15 16:04:38.502619

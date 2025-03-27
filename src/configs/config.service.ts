@@ -33,7 +33,7 @@ export class ConfigService {
   private readonly env_config: EnvironmentVariables;
 
   constructor(private nest_config_service: NestConfigService) {
-    // ✅ Fetch individual values correctly
+    // Fetch individual values correctly
     const config = {
       env: this.nest_config_service.get<string>('ENV', 'dev'),
 
@@ -111,12 +111,12 @@ export class ConfigService {
     this.env_config = validatedConfig;
   }
 
-  // ✅ Generic getter
+  // Generic getter
   get<T extends keyof EnvironmentVariables>(key: T): EnvironmentVariables[T] {
     return this.env_config[key];
   }
 
-  // ✅ Mongo URI Getter
+  // Mongo URI Getter
   get mongo_uri(): string {
     return (
       `mongodb+srv://${this.env_config.mongo_username}:${this.env_config.mongo_password}` +

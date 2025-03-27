@@ -9,18 +9,18 @@ import requests
 from app import constants
 from app.core.database import Collection, get_collection
 
-
 task_router = APIRouter(prefix="/task", tags=["Task APIs"])
 IRELAND_LOCATION = (53.425046, -7.944624)
-
 distance_cache = {}
 
 
 class TaskScoreRequest(BaseModel):
     task_id: str
 
+
 def round_to_factor(value: float, factor: int) -> int:
     return math.ceil(value / factor) * factor
+
 
 def calculate_description_complexity_score(description: str) -> int:
     flesch_score = max(textstat.flesch_reading_ease(description), 0)
@@ -30,10 +30,10 @@ def calculate_description_complexity_score(description: str) -> int:
     complexity_score = ((123 - flesch_score) + ((smog_index + fog_index + ari_index) / 3)) / 2
     return math.ceil(complexity_score)
 
+
 async def get_task_type_skills_score(task_type_id):
     try:
         task_types_collection = get_collection(Collection.TASK_TYPES)
-        skills_collection = get_collection(Collection.SKILLS)
 
         if isinstance(task_type_id, dict) and "_id" in task_type_id:
             task_type_id = task_type_id["_id"]
@@ -47,22 +47,13 @@ async def get_task_type_skills_score(task_type_id):
         if not task_type:
             return 0
 
-        skill_ids = task_type.get("required_skills", [])
-        total_skill_score = 0
-
-        for skill_id in skill_ids:
-            if isinstance(skill_id, dict) and "_id" in skill_id:
-                skill_id = skill_id["_id"]
-            if isinstance(skill_id, str):
-                skill_id = ObjectId(skill_id)
-
-            skill = await skills_collection.find_one({"_id": skill_id})
-            if skill:
-                total_skill_score += skill.get("score", 0)
+        skill_objects = task_type.get("skills", [])
+        total_skill_score = sum(skill.get("score", 0) for skill in skill_objects if isinstance(skill, dict))
 
         return total_skill_score
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error fetching task type skills: {str(e)}")
+
 
 def get_distance_km(lat1, lon1, lat2, lon2):
     location_key = (lat2, lon2)
@@ -81,6 +72,7 @@ def get_distance_km(lat1, lon1, lat2, lon2):
             return None
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error calculating distance: {str(e)}")
+
 
 @task_router.post("/calculate-score")
 async def calculate_task_score(payload: TaskScoreRequest):

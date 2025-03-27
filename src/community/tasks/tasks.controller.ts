@@ -79,10 +79,15 @@ export class TasksController {
   @HttpCode(HttpStatus.OK)
   @ApiBearerAuth()
   async get_tasks(@Res() response) {
+    const tasks_data = await this.tasks_service.get_tasks();
     return create_response(response, {
-      data: await this.tasks_service.get_tasks(),
+      data: tasks_data.tasks,
       message: 'Tasks fetched successfully',
       status: HttpStatus.OK,
+      metadata: {
+        count: tasks_data.count,
+        total_count: tasks_data.total_count,
+      },
     });
   }
 
@@ -198,6 +203,33 @@ export class TasksController {
   ) {
     try {
       const result = await this.tasks_service.accept_participation(
+        task_id,
+        participant_id,
+        user.sub,
+      );
+      return create_response(response, {
+        message: result.message,
+        status: HttpStatus.OK,
+      });
+    } catch (error) {
+      return create_response(response, {
+        message: error.message,
+        status: error.status || HttpStatus.BAD_REQUEST,
+      });
+    }
+  }
+
+  @Post('/:task_id/reject-participation/:participant_id')
+  @HttpCode(HttpStatus.OK)
+  @ApiBearerAuth()
+  async reject_participation(
+    @Param('task_id') task_id: string,
+    @Param('participant_id') participant_id: string,
+    @KeycloakUser() user: KeycloakAuthUser,
+    @Res() response,
+  ) {
+    try {
+      const result = await this.tasks_service.reject_participation(
         task_id,
         participant_id,
         user.sub,

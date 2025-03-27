@@ -34,6 +34,7 @@ export class ProfileService {
     const profile = this.profile_repository.create({
       _id: user_id,
       score: 0,
+      coins: 0,
       coupons: [],
       tasks_participated: [],
       tasks_created: [],
@@ -54,6 +55,10 @@ export class ProfileService {
     return profile;
   }
 
+  async get_all_profiles(): Promise<Profile[]> {
+    return this.profile_repository.find();
+  }
+
   async get_user_details(
     user_id: string,
   ): Promise<{ name: string; profile_image?: string }> {
@@ -69,6 +74,7 @@ export class ProfileService {
             ? `${user.firstName} ${user.lastName}`
             : user?.username || 'Unknown',
         profile_image: profile?.profile_image,
+        _id: user_id,
       };
 
       return user_data;
@@ -80,10 +86,13 @@ export class ProfileService {
 
   async enrich_users(
     user_ids: string[],
-  ): Promise<Record<string, { name: string; profile_image?: string }>> {
-    const enriched: Record<string, { name: string; profile_image?: string }> =
-      {};
-
+  ): Promise<
+    Record<string, { name: string; profile_image?: string; _id: string }>
+  > {
+    const enriched: Record<
+      string,
+      { name: string; profile_image?: string; _id: string }
+    > = {};
     const seen = new Map();
     for (const user_id of user_ids) {
       if (!seen.has(user_id)) {
@@ -91,7 +100,6 @@ export class ProfileService {
       }
       enriched[user_id] = seen.get(user_id);
     }
-
     return enriched;
   }
 
@@ -131,7 +139,6 @@ export class ProfileService {
     skill_ids: string[],
   ): Promise<Profile> {
     const profile = await this.get_profile(user_id);
-
     const existing_skills = new Map(
       (profile.skills || []).map((s) => [s.skill_id, s]),
     );
@@ -153,7 +160,7 @@ export class ProfileService {
     }
 
     profile.skills = Array.from(existing_skills.values());
-    return await this.profile_repository.save(profile); // ✅ return the updated profile
+    return await this.profile_repository.save(profile);
   }
 
   async update_skill_hours_from_attendance(
@@ -166,7 +173,6 @@ export class ProfileService {
       where: { _id: new ObjectId(task_id) },
     });
     if (!task) throw new NotFoundException('Task not found');
-
     if (task.status !== TaskStatus.COMPLETED) return;
 
     const skills = task.task_type?.skills || [];
@@ -184,9 +190,52 @@ export class ProfileService {
       });
     }
 
-    await this.profile_repository.updateOne(
-      { _id: user_id },
-      { $set: { skills: Array.from(existing_skills.values()) } },
+    const total_score = (task.score_breakdown || []).reduce(
+      (sum, item) => sum + (item.score || 0),
+      0,
     );
+
+    profile.score += total_score;
+    profile.coins = (profile.coins || 0) + total_score;
+    profile.skills = Array.from(existing_skills.values());
+
+    await this.profile_repository.save(profile);
+  }
+
+  async calculate_attendance_streak(user_id: string): Promise<number> {
+    const tasks = await this.task_repository.find({
+      where: {
+        status: TaskStatus.COMPLETED,
+        $or: [
+          { 'participants.user_id': user_id },
+          { attendance_log: { $exists: true } },
+        ],
+      },
+    });
+
+    const attended_dates = new Set<string>();
+    for (const task of tasks) {
+      if (!task.attendance_log) continue;
+      for (const [date, users] of Object.entries(task.attendance_log)) {
+        if ((users as string[]).includes(user_id)) {
+          attended_dates.add(date);
+        }
+      }
+    }
+
+    const today = new Date();
+    let streak = 0;
+    for (let i = 0; ; i++) {
+      const checkDate = new Date(today);
+      checkDate.setDate(today.getDate() - i);
+      const key = checkDate.toISOString().split('T')[0];
+      if (attended_dates.has(key)) {
+        streak++;
+      } else {
+        break;
+      }
+    }
+
+    return streak;
   }
 }

@@ -8,6 +8,7 @@ import { MoreThan, Repository } from 'typeorm';
 import { ObjectId } from 'mongodb';
 import { RetailItem } from './entities/retail-item.entity';
 import { CommunityRetailItem } from './entities/community-retail-item';
+import { Profile } from '../profile/entities/profile.entity';
 
 @Injectable()
 export class RetailService {
@@ -16,6 +17,9 @@ export class RetailService {
   constructor(
     @InjectRepository(RetailItem)
     private retail_items_repository: Repository<RetailItem>,
+
+    @InjectRepository(Profile)
+    private profile_repository: Repository<Profile>,
   ) {}
 
   async get_available_items(
@@ -56,6 +60,7 @@ export class RetailService {
         quantity: _item.quantity,
         expiry_date: _item.expiry_date,
         sku_id: _item.sku_id,
+        weight: _item.weight,
         retailer: {
           id: _item.retailer_id,
           name: 'Lidl',
@@ -80,6 +85,7 @@ export class RetailService {
       quantity: item.quantity,
       expiry_date: item.expiry_date,
       sku_id: item.sku_id,
+      weight: item.weight,
       retailer: {
         id: item.retailer_id,
         name: 'Lidl',
@@ -89,7 +95,7 @@ export class RetailService {
     };
   }
 
-  async purchase_item(item_id: string, quantity: number) {
+  async purchase_item(item_id: string, quantity: number, user_id: string) {
     const item = await this.retail_items_repository.findOneBy({
       _id: new ObjectId(item_id),
     });
@@ -108,9 +114,30 @@ export class RetailService {
       );
     }
 
+    const profile = await this.profile_repository.findOneBy({
+      _id: new ObjectId(user_id),
+    });
+
+    if (!profile) {
+      throw new NotFoundException('User profile not found');
+    }
+
+    const total_cost = item.price * this.POINTS_MULTIPLIER * quantity;
+
+    if (profile.coins < total_cost) {
+      throw new BadRequestException('Insufficient coins to redeem this item');
+    }
+
+    // Deduct coins and add coupon
+    profile.coins -= total_cost;
+    for (let i = 0; i < quantity; i++) {
+      profile.coupons.push(item_id);
+    }
+    await this.profile_repository.save(profile);
+
+    // Deduct item quantity
     item.quantity -= quantity;
     item.updated_at = new Date();
-
     await this.retail_items_repository.save(item);
 
     return {
@@ -119,6 +146,7 @@ export class RetailService {
         item_id: item_id,
         quantity_purchased: quantity,
         remaining_stock: item.quantity,
+        coins_remaining: profile.coins,
       },
     };
   }

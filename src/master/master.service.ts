@@ -23,7 +23,7 @@ export class MasterService implements OnModuleInit {
   }
 
   async onModuleInit() {
-    const MAX_RETRIES = 11;
+    const MAX_RETRIES = 10 * 2;
     const RETRY_DELAY_MS = 2000; // 2 seconds
     let attempt = 0;
 
@@ -129,10 +129,19 @@ export class MasterService implements OnModuleInit {
       );
     }
 
+    const skills = skillNames.map((name) => {
+      const skill = skillsMap.get(name)!;
+      return {
+        _id: skill._id,
+        name: skill.name,
+        score: skill.score,
+      };
+    });
+
     const taskType = this.task_type_repository.create({
       name,
       description,
-      skills: skillNames.map((name) => skillsMap.get(name)!),
+      skills,
       status: TaskTypeStatus.ACTIVE,
       created_at: new Date(),
       updated_at: new Date(),
