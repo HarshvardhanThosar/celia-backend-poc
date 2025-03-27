@@ -35,8 +35,23 @@ export class AttendanceService {
     });
 
     for (const task of tasks_due) {
+      const attendance_log = task.attendance_log || {};
+      const total_attendance = Object.values(attendance_log).reduce(
+        (acc, users) => acc + users.length,
+        0,
+      );
+
+      if (total_attendance === 0) {
+        task.status = TaskStatus.UNATTENDED;
+        task.updated_at = today;
+        await this.task_repository.save(task);
+        this.logger.log(`Task marked UNATTENDED: ${task._id}`);
+        continue;
+      }
+
       await this.distribute_rewards(task);
       task.status = TaskStatus.COMPLETED;
+      task.updated_at = today;
       await this.task_repository.save(task);
       this.logger.log(`Rewards distributed for task: ${task._id}`);
     }

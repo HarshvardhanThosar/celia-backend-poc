@@ -2,6 +2,7 @@ export enum TaskStatus {
   COMPLETED = 'completed',
   INVALID = 'invalid',
   ACTIVE = 'active',
+  UNATTENDED = 'unattended',
 }
 
 export enum ParticipationStatus {

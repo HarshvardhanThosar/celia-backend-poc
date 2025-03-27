@@ -6,7 +6,7 @@ import {
   Logger,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { LessThanOrEqual, Repository } from 'typeorm';
 import { Task } from './entities/task.entity';
 import { ObjectId } from 'mongodb';
 import {
@@ -23,6 +23,7 @@ import { ProfileService } from '../profile/profile.service';
 import { PushTokenService } from 'src/notifications/push-token.service';
 import { NotificationsService } from 'src/notifications/notifications.service';
 import { NotificationType } from 'src/notifications/types/NotificationTypes';
+import { Cron, CronExpression } from '@nestjs/schedule';
 
 @Injectable()
 export class TasksService {
@@ -314,8 +315,86 @@ export class TasksService {
     task.status = TaskStatus.COMPLETED;
     task.updated_at = new Date();
     await this.task_repository.save(task);
+
+    if (task.status !== TaskStatus.COMPLETED) {
+      task.status = TaskStatus.COMPLETED;
+      task.updated_at = new Date();
+      await this.task_repository.save(task);
+
+      const accepted_participants = task.participants.filter(
+        (p) => p.status === ParticipationStatus.ACCEPTED,
+      );
+
+      const duration_days = Math.ceil(
+        (new Date(task.completes_at).getTime() -
+          new Date(task.starts_at).getTime()) /
+          (1000 * 60 * 60 * 24),
+      );
+
+      for (const participant of accepted_participants) {
+        const days_attended = Object.values(task.attendance_log || {}).filter(
+          (day) => day.includes(participant.user_id),
+        ).length;
+
+        if (days_attended > 0) {
+          await this.profile_service.update_skill_hours_from_attendance(
+            participant.user_id,
+            task._id.toString(),
+            days_attended,
+          );
+        }
+      }
+    }
     return task;
   }
+
+  // @Cron(CronExpression.EVERY_DAY_AT_MIDNIGHT)
+  // async handle_task_completion_and_rewards() {
+  //   const now = new Date();
+  //   const tasks = await this.task_repository.find({
+  //     where: {
+  //       status: TaskStatus.ACTIVE,
+  //       completes_at: LessThanOrEqual(now),
+  //     },
+  //   });
+
+  //   for (const task of tasks) {
+  //     const attendance_log = task.attendance_log || {};
+  //     const total_attendance = Object.values(attendance_log).reduce(
+  //       (acc, users) => acc + users.length,
+  //       0,
+  //     );
+
+  //     if (total_attendance === 0) {
+  //       task.status = TaskStatus.UNATTENDED;
+  //       task.updated_at = now;
+  //       await this.task_repository.save(task);
+  //       continue;
+  //     }
+
+  //     task.status = TaskStatus.COMPLETED;
+  //     task.updated_at = now;
+  //     await this.task_repository.save(task);
+
+  //     const accepted_participants = task.participants.filter(
+  //       (p) => p.status === ParticipationStatus.ACCEPTED,
+  //     );
+
+  //     for (const participant of accepted_participants) {
+  //       const days_attended = Object.values(attendance_log).filter((users) =>
+  //         users.includes(participant.user_id),
+  //       ).length;
+
+  //       if (days_attended > 0) {
+  //         await this.profile_service.update_skill_hours_from_attendance(
+  //           participant.user_id,
+  //           task._id.toString(),
+  //           days_attended,
+  //         );
+  //       }
+  //     }
+  //   }
+  // }
 
   async delete_task(task_id: string, user_id: string) {
     const task = await this.task_repository.findOneBy({
@@ -537,14 +616,14 @@ export class TasksService {
     task.attendance_log[today] = [...logged, user_id];
 
     await this.task_repository.save(task);
-    const attended_days = Object.values(task.attendance_log || {}).filter(
-      (users) => users.includes(user_id),
-    ).length;
-    await this.profile_service.update_skill_hours_from_attendance(
-      user_id,
-      task._id.toString(),
-      attended_days,
-    );
+    // const attended_days = Object.values(task.attendance_log || {}).filter(
+    //   (users) => users.includes(user_id),
+    // ).length;
+    // await this.profile_service.update_skill_hours_from_attendance(
+    //   user_id,
+    //   task._id.toString(),
+    //   attended_days,
+    // );
 
     return { message: 'Attendance marked successfully', date: today };
   }
