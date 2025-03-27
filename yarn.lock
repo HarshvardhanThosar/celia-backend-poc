@@ -3424,6 +3424,7 @@ __metadata:
     axios: "npm:^1.8.1"
     class-transformer: "npm:^0.5.1"
     class-validator: "npm:^0.14.1"
+    csv-parser: "npm:^3.2.0"
     eslint: "npm:^9.18.0"
     eslint-config-prettier: "npm:^10.0.1"
     eslint-plugin-prettier: "npm:^5.2.2"
@@ -3867,6 +3868,15 @@ __metadata:
     shebang-command: "npm:^2.0.0"
     which: "npm:^2.0.1"
   checksum: 10c0/053ea8b2135caff68a9e81470e845613e374e7309a47731e81639de3eaeb90c3d01af0e0b44d2ab9d50b43467223b88567dfeb3262db942dc063b9976718ffc1
+  languageName: node
+  linkType: hard
+
+"csv-parser@npm:^3.2.0":
+  version: 3.2.0
+  resolution: "csv-parser@npm:3.2.0"
+  bin:
+    csv-parser: bin/csv-parser
+  checksum: 10c0/650769916607dae9679187803c71ef70d3b724cfb18e4adff187167b282faf18ac7c14a318c4ea6e92ae3483d3ed4b8d92ff213e77979e3049a5c0029034ac65
   languageName: node
   linkType: hard
 

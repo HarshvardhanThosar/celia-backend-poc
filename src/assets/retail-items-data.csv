@@ -1,0 +1,13 @@
+name,price,category,"quantity
+",weight_in_kg,manufactured_date,expiry_date,description,thumbnail,retailer_id,"retail_batch_id
+",currency,"status
+",created_at,updated_at
+Oriental Vegetable Stir Fry,1.59,"Fresh Food (Stir Fry Vegetables, Sauce & Fry",5,0.4,,,Nature’s Pick,https://dm.emea.cms.aldi.cx/is/image/aldiprodeu/product/jpg/scaleWidth/500/a8422bd4-9ce1-4082-98fe-713a8a0bc63b/Oriental Vegetable Stir Fry,ALDI5678,,EUR,ACTIVE,,
+Mini Pudding,1.39,Fresh Food (Pudding & Stuffing),2,0.26,,,Specially Selected,https://dm.emea.cms.aldi.cx/is/image/aldiprodeu/product/jpg/scaleWidth/500/89cfa9fd-114b-487b-8051-a57de1cdd410/Mini Pudding,ALDI5678,,EUR,ACTIVE,,
+Low Fat Meatballs,2.99,Fresh Food (Beef),4,0.36,,,Butchers Selection,https://dm.emea.cms.aldi.cx/is/image/aldiprodeu/product/jpg/scaleWidth/500/5a880134-7009-4d9e-b329-59de7bfd6f25/Low Fat Meatballs,ALDI5678,,EUR,ACTIVE,,
+Diced Chicken Pieces 550g,5.59,Fresh Food (Poultry),8,0.55,,,Butchers Selection,https://dm.emea.cms.aldi.cx/is/image/aldiprodeu/product/jpg/scaleWidth/500/b9289dc5-1197-4902-a059-d89ca4ccafd1/Diced Chicken Pieces 550g,ALDI5678,,EUR,ACTIVE,,
+100% Wholemeal,1.09,Fresh Food (Bread),2,0.8,,,Ballymore Crust,https://dm.emea.cms.aldi.cx/is/image/aldiprodeu/product/jpg/scaleWidth/500/63bdd3c5-73ad-4af4-a8e5-33309fa1ce59/100% Wholemeal,ALDI5678,,EUR,ACTIVE,,
+Freshley Whipped Cream 350ml,1.79,Chilled Food,5,0.35,,,Clonbawn,https://dm.emea.cms.aldi.cx/is/image/aldiprodeu/product/jpg/scaleWidth/500/5bcb390d-3f86-4ca2-90a0-af3407d9b755/Freshley Whipped Cream 350ml,ALDI5678,,EUR,ACTIVE,,
+Low Fat Sour Cream,0.89,Chilled Food,4,0.2,,,Clonbawn,https://dm.emea.cms.aldi.cx/is/image/aldiprodeu/product/jpg/scaleWidth/500/ffa54487-7c2b-4470-810b-10c79c2d414d/Low Fat Sour Cream,ALDI5678,,EUR,ACTIVE,,
+Full Fat Sour Cream,0.89,Chilled Food,6,0.2,,,Clonbawn,https://dm.emea.cms.aldi.cx/is/image/aldiprodeu/product/jpg/scaleWidth/500/2b145627-365d-4448-ae8a-8f97269337cb/Full Fat Sour Cream,ALDI5678,,EUR,ACTIVE,,
+Chicken Curry,3.99,Ready Meals,7,0.37,,,Nutriquick,https://dm.emea.cms.aldi.cx/is/image/aldiprodeu/product/jpg/scaleWidth/500/1ba14ba0-7efc-4818-8e07-2d2280c8549e/Chicken Curry,ALDI5679,,EUR,ACTIVE,,

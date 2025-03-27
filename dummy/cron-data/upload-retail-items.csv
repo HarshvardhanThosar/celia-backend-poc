@@ -1,2 +1,0 @@
-name,price,category,sku_id,quantity,manufactured_date,expiry_date,description,thumbnail,retailer_id,retail_batch_id,currency,status,created_at,updated_at
-Oriental Vegetable Stir Fry,1.59,Fresh Food,SKU12345,5,2024-01-15,2024-06-15,Fresh dairy milk,https://dm.emea.cms.aldi.cx/is/image/aldiprodeu/product/jpg/scaleWidth/1296/a8422bd4-9ce1-4082-98fe-713a8a0bc63b/Oriental%20Vegetable%20Stir%20Fry,ALDIO789,BATCH001,EUR,ACTIVE,2025-03-15 16:04:38.502051,2025-03-15 16:04:38.502619

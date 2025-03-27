@@ -30,13 +30,13 @@ export class RetailService {
     const currentDate = new Date();
 
     const items = await this.retail_items_repository.find({
-      where: {
-        expiry_date: MoreThan(currentDate),
-        quantity: MoreThan(0),
-      },
-      order: { created_at: 'DESC' },
-      skip,
-      take: pageSize,
+      // where: {
+      //   // quantity: MoreThan(0),
+      //   // expiry_date: MoreThan(currentDate),
+      // },
+      // order: { created_at: 'DESC' },
+      // skip,
+      // take: pageSize,
       select: [
         '_id',
         'name',
@@ -47,6 +47,7 @@ export class RetailService {
         'expiry_date',
         'sku_id',
         'retailer_id',
+        'weight',
       ],
     });
 
@@ -63,7 +64,7 @@ export class RetailService {
         weight: _item.weight,
         retailer: {
           id: _item.retailer_id,
-          name: 'Lidl',
+          name: 'ALDI',
           store: 'Athlone',
           batch_id: _item.retail_batch_id,
         },
@@ -88,7 +89,7 @@ export class RetailService {
       weight: item.weight,
       retailer: {
         id: item.retailer_id,
-        name: 'Lidl',
+        name: 'ALDI',
         store: 'Athlone',
         batch_id: item.retail_batch_id,
       },

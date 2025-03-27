@@ -17,6 +17,7 @@ import { TasksModule } from './community/tasks/tasks.module';
 import { RetailModule } from './community/retail/retail.module';
 import { ScheduleModule } from '@nestjs/schedule';
 import { AttendanceCronModule } from './cron/attendance-cron/attendance-cron.module';
+import { RetailItemsCronModule } from './cron/retail-items-cron/retail-items-cron.module';
 
 @Module({
   imports: [
@@ -57,6 +58,7 @@ import { AttendanceCronModule } from './cron/attendance-cron/attendance-cron.mod
     TaskTypesModule,
     MasterModule,
     AttendanceCronModule,
+    RetailItemsCronModule,
   ],
   controllers: [AppController],
   providers: [AppService],
