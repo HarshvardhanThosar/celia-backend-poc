@@ -12,7 +12,7 @@ import { Profile } from '../profile/entities/profile.entity';
 
 @Injectable()
 export class RetailService {
-  private readonly POINTS_MULTIPLIER = 10;
+  private readonly POINTS_MULTIPLIER = 2000;
 
   constructor(
     @InjectRepository(RetailItem)

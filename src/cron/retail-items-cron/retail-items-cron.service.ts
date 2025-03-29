@@ -20,7 +20,7 @@ export class RetailItemsCronService {
     private readonly retailBatchRepository: Repository<RetailBatch>,
   ) {}
 
-  @Cron(CronExpression.EVERY_6_HOURS)
+  @Cron(CronExpression.EVERY_DAY_AT_MIDNIGHT)
   async importCsvRetailItems() {
     const filePath = path.join(
       process.cwd(),
