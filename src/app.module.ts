@@ -19,6 +19,14 @@ import { ScheduleModule } from '@nestjs/schedule';
 import { AttendanceCronModule } from './cron/attendance-cron/attendance-cron.module';
 import { RetailItemsCronModule } from './cron/retail-items-cron/retail-items-cron.module';
 
+/**
+ * TODO:
+ * 1. Fix the currency to points ratio in retail items' get requests
+ * 2. Update the task types and skill to suit an academic setting
+ * 2. Fix the dynamic pricing
+ * 3. Validate the flow again
+ */
+
 @Module({
   imports: [
     ScheduleModule.forRoot(),
