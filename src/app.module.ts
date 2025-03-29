@@ -21,10 +21,11 @@ import { RetailItemsCronModule } from './cron/retail-items-cron/retail-items-cro
 
 /**
  * TODO:
- * 1. Fix the currency to points ratio in retail items' get requests
- * 2. Update the task types and skill to suit an academic setting
- * 2. Fix the dynamic pricing
- * 3. Validate the flow again
+ * 1. Fix the ethics' form terms in the application
+ * 2. Fix the currency to points ratio in retail items' get requests
+ * 3. Update the task types and skill to suit an academic setting
+ * 4. Fix the dynamic pricing
+ * 5. Validate the flow again
  */
 
 @Module({
