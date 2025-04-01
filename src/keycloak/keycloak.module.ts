@@ -20,7 +20,7 @@ import { KeycloakAdminService } from './admin/keycloak-admin.service';
       useFactory: (config_service: ConfigService) => ({
         authServerUrl: config_service.get<string>(
           'KEYCLOAK_URL',
-          'http://keycloak-server:8080',
+          'http://keycloak:8080',
         ),
         realm: config_service.get<string>('KEYCLOAK_REALM', 'celia-auth-realm'),
         clientId: config_service.get<string>(

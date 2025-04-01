@@ -16,7 +16,7 @@ services:
 
   keycloak:
     image: quay.io/keycloak/keycloak:latest
-    container_name: keycloak-server
+    container_name: keycloak
     restart: always
     depends_on:
       - postgres
@@ -57,7 +57,7 @@ services:
       NODE_ENV: development
       MONGO_URI: ${MONGO_URI}
       MONGO_DATABASE: ${MONGO_DATABASE}
-      KEYCLOAK_URL: 'http://keycloak-server:8080'
+      KEYCLOAK_URL: 'http://keycloak:8080'
     ports:
       - '3000:3000'
     command: npm run start:dev # Hot reload enabled

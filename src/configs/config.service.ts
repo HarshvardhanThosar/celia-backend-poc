@@ -58,7 +58,7 @@ export class ConfigService {
       // Keycloak
       keycloak_url: this.nest_config_service.get<string>(
         'KEYCLOAK_URL',
-        'http://keycloak-server:8080',
+        'http://keycloak:8080',
       ),
       keycloak_realm: this.nest_config_service.get<string>(
         'KEYCLOAK_REALM',
