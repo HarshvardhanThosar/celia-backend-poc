@@ -1,16 +1,4 @@
 steps:
-  # Step 0: Setup SSH with private key from Secret Manager
-  - name: 'gcr.io/cloud-builders/git'
-    entrypoint: bash
-    secretEnv: ['SSH_KEY']
-    args:
-      - -c
-      - |
-        mkdir -p ~/.ssh
-        echo "$SSH_KEY" > ~/.ssh/id_rsa
-        chmod 600 ~/.ssh/id_rsa
-        ssh-keyscan github.com >> ~/.ssh/known_hosts
-
   # Step 1: Build all Docker services using docker-compose
   - name: 'gcr.io/cloud-builders/docker'
     dir: .
@@ -28,9 +16,6 @@ steps:
 
 timeout: 1200s  # 20 minutes
 
+# Optional: Set logging behavior (fixes error when using a custom service account)
 options:
   logging: CLOUD_LOGGING_ONLY
-
-secrets:
-- secretEnv:
-    SSH_KEY: projects/celia-backend/secrets/GITHUB_SSH_PRIVATE_KEY/versions/latest
