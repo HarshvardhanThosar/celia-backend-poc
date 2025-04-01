@@ -37,11 +37,13 @@ services:
       [
         'start-dev',
         '--log-level=info',
-        '--cache=local',
+        '--hostname=auth.celia.run.place',
+        '--hostname-url=https://auth.celia.run.place',
+        '--hostname-strict=false',
+        '--hostname-strict-https=false',
         '--spi-theme-cache-themes=false',
         '--spi-theme-static-max-age=-1',
         '--spi-theme-cache-templates=false',
-        '--hostname-strict=false',
       ]
 
   poc-server:
