@@ -20,10 +20,15 @@ export class AttendanceService {
     private readonly profile_repository: MongoRepository<Profile>,
   ) {}
 
+  async onModuleInit() {
+    console.log('[Startup] Running attendance cron...');
+    await this.handle_task_completion_and_rewards();
+  }
+
   /**
    * CRON job to run daily at midnight to distribute rewards
    */
-  @Cron(CronExpression.EVERY_DAY_AT_MIDNIGHT)
+  @Cron(CronExpression.EVERY_10_SECONDS)
   async handle_task_completion_and_rewards() {
     const today = new Date();
 
@@ -67,6 +72,11 @@ export class AttendanceService {
       task.task_type.skills.map((s) => [s._id.toString(), s.name]),
     );
 
+    const total_score = (task.score_breakdown || []).reduce(
+      (sum, item) => sum + (item.score || 0),
+      0,
+    );
+
     for (const participant of task.participants || []) {
       if (participant.status !== 'accepted') continue;
 
@@ -107,9 +117,12 @@ export class AttendanceService {
       }
 
       profile.skills = Array.from(skill_map_profile.values());
+      profile.score += total_score;
+      profile.coins = (profile.coins || 0) + total_score;
+
       await this.profile_repository.save(profile);
       this.logger.log(
-        `Updated skills for participant ${participant.user_id} in task ${task._id}`,
+        `Updated skills and rewards for participant ${participant.user_id} in task ${task._id}`,
       );
     }
   }

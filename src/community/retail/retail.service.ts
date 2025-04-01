@@ -2,9 +2,16 @@ import {
   Injectable,
   NotFoundException,
   BadRequestException,
+  InternalServerErrorException,
+  Logger,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { MoreThan, Repository } from 'typeorm';
+import {
+  MongoRepository,
+  MoreThan,
+  MoreThanOrEqual,
+  Repository,
+} from 'typeorm';
 import { ObjectId } from 'mongodb';
 import { RetailItem } from './entities/retail-item.entity';
 import { CommunityRetailItem } from './entities/community-retail-item';
@@ -12,6 +19,7 @@ import { Profile } from '../profile/entities/profile.entity';
 
 @Injectable()
 export class RetailService {
+  private readonly logger = new Logger(RetailService.name);
   private readonly POINTS_MULTIPLIER = 2000;
 
   constructor(
@@ -19,7 +27,7 @@ export class RetailService {
     private retail_items_repository: Repository<RetailItem>,
 
     @InjectRepository(Profile)
-    private profile_repository: Repository<Profile>,
+    private profile_repository: MongoRepository<Profile>,
   ) {}
 
   async get_available_items(
@@ -30,13 +38,13 @@ export class RetailService {
     const currentDate = new Date();
 
     const items = await this.retail_items_repository.find({
-      // where: {
-      //   // quantity: MoreThan(0),
-      //   // expiry_date: MoreThan(currentDate),
-      // },
-      // order: { created_at: 'DESC' },
-      // skip,
-      // take: pageSize,
+      where: {
+        // quantity: MoreThan(0),
+        // expiry_date: MoreThanOrEqual(currentDate),
+      },
+      order: { created_at: 'DESC' },
+      skip,
+      take: pageSize,
       select: [
         '_id',
         'name',
@@ -73,10 +81,16 @@ export class RetailService {
   }
 
   async get_item_by_id(id: string): Promise<CommunityRetailItem | null> {
-    const item = await this.retail_items_repository.findOneBy({
-      _id: new ObjectId(id),
-    });
-    if (!item) return item;
+    let itemId: ObjectId;
+    try {
+      itemId = new ObjectId(id);
+    } catch {
+      throw new BadRequestException('Invalid item ID');
+    }
+
+    const item = await this.retail_items_repository.findOneBy({ _id: itemId });
+    if (!item) return null;
+
     return {
       _id: item._id,
       name: item.name,
@@ -97,13 +111,15 @@ export class RetailService {
   }
 
   async purchase_item(item_id: string, quantity: number, user_id: string) {
-    const item = await this.retail_items_repository.findOneBy({
-      _id: new ObjectId(item_id),
-    });
-
-    if (!item) {
-      throw new NotFoundException('Item not found');
+    let itemId: ObjectId, userId: ObjectId;
+    try {
+      itemId = new ObjectId(item_id);
+    } catch {
+      throw new BadRequestException('Invalid ID format');
     }
+
+    const item = await this.retail_items_repository.findOneBy({ _id: itemId });
+    if (!item) throw new NotFoundException('Item not found');
 
     if (item.expiry_date < new Date()) {
       throw new BadRequestException('Item has expired and cannot be purchased');
@@ -115,36 +131,55 @@ export class RetailService {
       );
     }
 
-    const profile = await this.profile_repository.findOneBy({
-      _id: new ObjectId(user_id),
-    });
+    const profile = await this.profile_repository.findOneBy({ _id: user_id });
 
-    if (!profile) {
-      throw new NotFoundException('User profile not found');
-    }
+    if (!profile) throw new NotFoundException('User profile not found');
 
     const total_cost = item.price * this.POINTS_MULTIPLIER * quantity;
-
     if (profile.coins < total_cost) {
       throw new BadRequestException('Insufficient coins to redeem this item');
     }
 
-    // Deduct coins and add coupon
-    profile.coins -= total_cost;
-    for (let i = 0; i < quantity; i++) {
-      profile.coupons.push(item_id);
+    // Ensure coupons array exists
+    if (!Array.isArray(profile.coupons)) {
+      profile.coupons = [];
     }
-    await this.profile_repository.save(profile);
 
-    // Deduct item quantity
+    profile.coins -= total_cost;
+    // for (let i = 0; i < quantity; i++) {
+    profile.coupons.push(item_id);
+    // }
+
+    try {
+      await this.profile_repository.updateOne(
+        { _id: profile._id },
+        {
+          $set: {
+            coins: profile.coins,
+            coupons: profile.coupons,
+            updated_at: new Date(),
+          },
+        },
+      );
+    } catch (err) {
+      this.logger.error('Error saving profile:', err);
+      throw new InternalServerErrorException('Could not complete purchase');
+    }
+
     item.quantity -= quantity;
     item.updated_at = new Date();
-    await this.retail_items_repository.save(item);
+
+    try {
+      await this.retail_items_repository.save(item);
+    } catch (err) {
+      this.logger.error('Error saving item:', err);
+      throw new InternalServerErrorException('Could not update item stock');
+    }
 
     return {
       message: 'Purchase successful',
       data: {
-        item_id: item_id,
+        item_id,
         quantity_purchased: quantity,
         remaining_stock: item.quantity,
         coins_remaining: profile.coins,

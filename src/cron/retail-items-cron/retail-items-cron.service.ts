@@ -20,6 +20,11 @@ export class RetailItemsCronService {
     private readonly retailBatchRepository: Repository<RetailBatch>,
   ) {}
 
+  async onModuleInit() {
+    console.log('[Startup] Importing retail items from CSV...');
+    await this.importCsvRetailItems();
+  }
+
   @Cron(CronExpression.EVERY_DAY_AT_MIDNIGHT)
   async importCsvRetailItems() {
     const filePath = path.join(

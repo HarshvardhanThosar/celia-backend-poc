@@ -6,7 +6,12 @@ import {
   Logger,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { LessThanOrEqual, Repository } from 'typeorm';
+import {
+  LessThanOrEqual,
+  MoreThan,
+  MoreThanOrEqual,
+  Repository,
+} from 'typeorm';
 import { Task } from './entities/task.entity';
 import { ObjectId } from 'mongodb';
 import {
@@ -72,8 +77,12 @@ export class TasksService {
 
   async get_tasks(page_number = 0, page_size = 10) {
     const skip = page_number * page_size;
+    const currentDate = new Date();
     const [tasks, total_count] = await this.task_repository.findAndCount({
-      // where: { status: TaskStatus.ACTIVE },
+      where: {
+        status: TaskStatus.ACTIVE,
+        // completes_at: MoreThanOrEqual(currentDate),
+      },
       order: { created_at: 'DESC' },
       skip,
       take: page_size,
@@ -154,10 +163,15 @@ export class TasksService {
       if (isNaN(starts_at.getTime()) || isNaN(completes_at.getTime())) {
         throw new BadRequestException('Invalid start or completion date');
       }
+
       const daily_attendance_codes = this.generate_attendance_codes(
         starts_at,
         completes_at,
       );
+
+      console.log({
+        daily_attendance_codes,
+      });
 
       const new_task = this.task_repository.create({
         ...task_data,

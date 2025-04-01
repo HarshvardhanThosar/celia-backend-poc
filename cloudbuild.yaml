@@ -1,0 +1,17 @@
+steps:
+  # 1. Build all Docker services defined in docker-compose
+  - name: 'gcr.io/cloud-builders/docker'
+    dir: .
+    args: ['compose', '-f', 'docker-compose.yml', 'build']
+
+  # 2. SSH into your VM and pull latest code, then rebuild & restart containers
+  - name: 'gcr.io/cloud-builders/gcloud'
+    entrypoint: bash
+    args:
+      - '-c'
+      - |
+        gcloud compute ssh harshvardhanthosar@instance-20250401-134435 \
+          --zone=us-central1-b \
+          --command="cd /home/harshvardhanthosar/celia-backend-poc && git pull && docker compose up --build -d"
+
+timeout: 1200s
