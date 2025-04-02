@@ -41,6 +41,7 @@ services:
         '--cache=local',
         '--hostname=auth.celia.run.place',
         '--hostname-strict=false',
+        '--proxy=edge'
       ]
 
   poc-server:
