@@ -1,0 +1,15 @@
+# docker-compose.live.yml
+services:
+  keycloak:
+    command:
+      [
+        'start-dev',
+        '--log-level=info',
+        '--cache=local',
+        '--hostname=auth.celia.run.place',
+        '--hostname-strict=false',
+      ]
+
+  poc-server:
+    environment:
+      KEYCLOAK_URL: 'http://keycloak:8080'

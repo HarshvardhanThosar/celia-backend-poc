@@ -106,3 +106,15 @@ docker-compose up
 
 docker-compose up --build --no-cache
 ```
+
+```
+docker-compose build --no-cache
+
+docker compose --env-file .env.local up -d
+```
+
+```
+docker-compose build --no-cache
+
+docker compose --env-file .env.live -f docker-compose.yml -f docker-compose.live.yml up -d
+```
