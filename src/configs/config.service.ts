@@ -70,7 +70,7 @@ export class ConfigService {
       ),
       keycloak_client_secret: this.nest_config_service.get<string>(
         'KEYCLOAK_CLIENT_SECRET',
-        'fq3Fvcan8eWHZqZqSbLsVoj0YrdtW6CU',
+        'CQ8w2G4J6c5IzRalVMTunoGl7CpnTI2Z',
       ),
       kc_bootstrap_admin_username: this.nest_config_service.get<string>(
         'KC_BOOTSTRAP_ADMIN_USERNAME',

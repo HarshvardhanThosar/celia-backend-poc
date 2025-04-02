@@ -101,7 +101,7 @@ export class AuthService {
         ),
         clientSecret: this.config_service.get<string>(
           'KEYCLOAK_CLIENT_SECRET',
-          'fq3Fvcan8eWHZqZqSbLsVoj0YrdtW6CU',
+          'CQ8w2G4J6c5IzRalVMTunoGl7CpnTI2Z',
         ),
         username,
         password,
@@ -164,7 +164,7 @@ export class AuthService {
         ),
         clientSecret: this.config_service.get<string>(
           'KEYCLOAK_CLIENT_SECRET',
-          'fq3Fvcan8eWHZqZqSbLsVoj0YrdtW6CU',
+          'CQ8w2G4J6c5IzRalVMTunoGl7CpnTI2Z',
         ),
         refreshToken: _refresh_auth_dto.refresh_token,
       });
@@ -214,7 +214,7 @@ export class AuthService {
       'client_secret',
       this.config_service.get<string>(
         'KEYCLOAK_CLIENT_SECRET',
-        'fq3Fvcan8eWHZqZqSbLsVoj0YrdtW6CU',
+        'CQ8w2G4J6c5IzRalVMTunoGl7CpnTI2Z',
       ),
     );
     params.append('refresh_token', refresh_token);

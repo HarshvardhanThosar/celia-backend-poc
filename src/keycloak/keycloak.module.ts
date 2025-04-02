@@ -29,7 +29,7 @@ import { KeycloakAdminService } from './admin/keycloak-admin.service';
         ),
         secret: config_service.get<string>(
           'KEYCLOAK_CLIENT_SECRET',
-          'fq3Fvcan8eWHZqZqSbLsVoj0YrdtW6CU',
+          'CQ8w2G4J6c5IzRalVMTunoGl7CpnTI2Z',
         ),
         // policyEnforcement: PolicyEnforcementMode.PERMISSIVE,
         // tokenValidation: TokenValidation.OFFLINE,
