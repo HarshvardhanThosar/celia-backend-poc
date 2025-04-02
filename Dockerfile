@@ -11,7 +11,8 @@ WORKDIR /usr/src/app
 COPY package.json yarn.lock .yarnrc.yml .pnp.* .yarn/ ./
 
 # Install dependencies using Yarn Plug'n'Play
-RUN yarn install --immutable
+ENV YARN_CACHE_FOLDER=/tmp/yarn-cache
+RUN yarn config set cache-folder /tmp/yarn-cache && yarn install --immutable
 
 # Copy the rest of your app source code
 COPY . .
