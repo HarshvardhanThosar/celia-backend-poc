@@ -2,7 +2,9 @@
 services:
   keycloak:
     environment:
+      KC_PROXY_HEADERS: xforwarded
       KC_PROXY: edge
+      KC_HOSTNAME: auth.celia.run.place
     command:
       [
         'start-dev',
