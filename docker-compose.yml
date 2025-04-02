@@ -50,7 +50,7 @@ services:
     restart: always
     depends_on:
       - keycloak
-      - python-task-score
+      - fast-api
     env_file:
       - .env
     environment:
@@ -65,9 +65,9 @@ services:
       - yarn_cache:/root/.yarn/berry/cache
       - ./src:/usr/src/app/src
 
-  python-task-score:
+  fast-api:
     build: fastapi
-    container_name: python-task-score
+    container_name: fast-api
     restart: unless-stopped
     depends_on:
       - postgres
