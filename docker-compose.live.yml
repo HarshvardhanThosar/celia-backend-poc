@@ -9,9 +9,9 @@ services:
       [
         'start-dev',
         '--log-level=info',
+        '--cache=local',
         '--hostname=auth.celia.run.place',
-        '--hostname-strict=true',
-        '--proxy-headers'
+        '--hostname-strict=true'
       ]
 
   poc-server:
