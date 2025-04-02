@@ -39,7 +39,8 @@ services:
         '--hostname=auth.celia.run.place',
         '--hostname-strict=true',
         '--log-level=info',
-        '--cache=local'
+        '--cache=local',
+        '--proxy-headers'
       ]
     ports:
       - '${KEYCLOAK_PORT}:8080'
