@@ -37,7 +37,7 @@ services:
       [
         'start-dev',
         '--hostname=auth.celia.run.place',
-        '--hostname-strict=true',
+        '--hostname-strict=false',
         '--log-level=info',
         '--cache=local',
         '--proxy-headers'
