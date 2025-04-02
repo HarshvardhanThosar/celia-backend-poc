@@ -31,19 +31,18 @@ services:
       KC_BOOTSTRAP_ADMIN_PASSWORD: ${KC_BOOTSTRAP_ADMIN_PASSWORD}
       KEYCLOAK_ADMIN: admin
       KEYCLOAK_ADMIN_PASSWORD: admin
-      KC_HOSTNAME: auth.celia.run.place
-      KC_HOSTNAME_STRICT: true
       KC_PROXY_HEADERS: xforwarded
-    ports:
-      - '${KEYCLOAK_PORT}:8080'
+      KC_HOSTNAME: auth.celia.run.place
     command:
       [
         'start-dev',
-        '--log-level=info',
-        '--cache=local',
         '--hostname=auth.celia.run.place',
-        '--hostname-strict=false',
+        '--hostname-strict=true',
+        '--log-level=info',
+        '--cache=local'
       ]
+    ports:
+      - '${KEYCLOAK_PORT}:8080'
 
   poc-server:
     build: .
@@ -61,10 +60,11 @@ services:
       KEYCLOAK_URL: 'http://keycloak:8080'
     ports:
       - '3000:3000'
-    command: npm run start:dev # Hot reload enabled
+    command: npm run start:dev
     volumes:
       - yarn_cache:/root/.yarn/berry/cache
       - ./src:/usr/src/app/src
+
   python-task-score:
     build: fastapi
     container_name: python-task-score
@@ -76,8 +76,7 @@ services:
     environment:
       MONGO_URI: ${MONGO_URI}
       MONGO_DATABASE: ${MONGO_DATABASE}
-    command:
-      ['uvicorn', 'main:app', '--host', '0.0.0.0', '--port', '8000', '--reload']
+    command: ['uvicorn', 'main:app', '--host', '0.0.0.0', '--port', '8000', '--reload']
     ports:
       - '8000:8000'
 
