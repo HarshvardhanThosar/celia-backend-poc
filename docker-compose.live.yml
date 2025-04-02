@@ -1,8 +1,6 @@
 # docker-compose.live.yml
 services:
   keycloak:
-    environment:
-      KC_PROXY_HEADERS: xforwarded
     command:
       [
         'start-dev',
