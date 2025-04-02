@@ -3,10 +3,16 @@ services:
   keycloak:
     command:
       [
+        # 'start-dev',
+        # '--log-level=info',
+        # '--cache=local',
+        # '--hostname=localhost',
+        # '--hostname-strict=false',
+
         'start-dev',
         '--log-level=info',
         '--cache=local',
-        '--hostname=localhost',
+        '--hostname=auth.celia.run.place',
         '--hostname-strict=false',
       ]
     ports:
