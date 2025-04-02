@@ -1,12 +1,13 @@
 # docker-compose.live.yml
 services:
   keycloak:
+    environment:
+      KC_PROXY: edge
     command:
       [
         'start-dev',
         '--log-level=info',
         '--cache=local',
-        '--proxy=edge',
         '--hostname=auth.celia.run.place',
         '--hostname-strict=false',
         '--hostname-port-stripping=true'
