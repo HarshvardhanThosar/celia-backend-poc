@@ -6,8 +6,10 @@ services:
         'start-dev',
         '--log-level=info',
         '--cache=local',
+        '--proxy=edge',
         '--hostname=auth.celia.run.place',
         '--hostname-strict=false',
+        '--hostname-port-stripping=true'
       ]
 
   poc-server:
