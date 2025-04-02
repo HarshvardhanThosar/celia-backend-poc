@@ -198,7 +198,7 @@ export class TasksService {
           key: string;
           score: number;
         }[];
-      }>('http://python-task-score:8000/api/v1/task/calculate-score', {
+      }>('http://fast-api:8000/api/v1/task/calculate-score', {
         task_id: new_task._id.toString(),
       });
 
@@ -283,7 +283,7 @@ export class TasksService {
       await this.task_repository.save(task);
 
       const score_response = await axios.post(
-        'http://python-task-score:8000/api/v1/task/calculate-score',
+        'http://fast-api:8000/api/v1/task/calculate-score',
         { task_id: task._id.toString() },
       );
 

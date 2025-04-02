@@ -2,8 +2,6 @@
 services:
   keycloak:
     environment:
-      KC_HOSTNAME: auth.celia.run.place
-      KC_HOSTNAME_STRICT: true
       KC_PROXY_HEADERS: xforwarded
     command:
       [
@@ -11,7 +9,7 @@ services:
         '--log-level=info',
         '--cache=local',
         '--hostname=auth.celia.run.place',
-        '--hostname-strict=true'
+        '--hostname-strict=false',
       ]
 
   poc-server:

@@ -18,6 +18,6 @@ services:
     ports:
       - '3000:3000'
 
-  python-task-score:
+  fast-api:
     ports:
       - '8000:8000'
