@@ -13,20 +13,23 @@ import { Skill } from 'src/skills/entities/skill.entity';
 import { TaskTypeStatus } from '../enums/task-type-status.enum';
 
 @Entity({ name: 'task_types' })
-@Index(['name'], { unique: true })
 export class TaskType {
   @ObjectIdColumn()
   _id: ObjectId;
 
+  @Index('IDX_unique_task_type_name', { unique: true })
   @Column()
   name: string;
 
   @Column({ nullable: true })
   description?: string;
 
-  @ManyToMany(() => Skill, { cascade: true })
-  @JoinTable()
-  skills: Skill[];
+  @Column({ type: 'json', default: [] })
+  skills: {
+    _id: ObjectId;
+    name: string;
+    score: number;
+  }[];
 
   @Column({
     type: 'enum',

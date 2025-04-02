@@ -3,6 +3,8 @@ services:
     image: postgres:15
     container_name: keycloak-db
     restart: always
+    env_file:
+      - .env
     environment:
       POSTGRES_DB: ${POSTGRES_DB}
       POSTGRES_USER: ${POSTGRES_USER}
@@ -14,10 +16,12 @@ services:
 
   keycloak:
     image: quay.io/keycloak/keycloak:latest
-    container_name: keycloak-server
+    container_name: keycloak
     restart: always
     depends_on:
       - postgres
+    env_file:
+      - .env
     environment:
       KC_DB: postgres
       KC_DB_URL: ${KC_DB_URL}
@@ -25,28 +29,57 @@ services:
       KC_DB_PASSWORD: ${KC_DB_PASSWORD}
       KC_BOOTSTRAP_ADMIN_USERNAME: ${KC_BOOTSTRAP_ADMIN_USERNAME}
       KC_BOOTSTRAP_ADMIN_PASSWORD: ${KC_BOOTSTRAP_ADMIN_PASSWORD}
+      KEYCLOAK_ADMIN: admin
+      KEYCLOAK_ADMIN_PASSWORD: admin
+      KC_PROXY_HEADERS: xforwarded
     ports:
       - '${KEYCLOAK_PORT}:8080'
     command:
       [
         'start-dev',
         '--log-level=info',
-        '--https-port=8443',
+        '--cache=local',
+        '--proxy=edge',
+        '--hostname=auth.celia.run.place',
         '--hostname-strict=false',
+        '--hostname-port-stripping=true'
       ]
-
   poc-server:
     build: .
     container_name: poc-server
     restart: always
     depends_on:
       - keycloak
-    ports:
-      - '3000:3000'
+      - python-task-score
     env_file:
       - .env
     environment:
-      - NODE_ENV=production
+      NODE_ENV: development
+      MONGO_URI: ${MONGO_URI}
+      MONGO_DATABASE: ${MONGO_DATABASE}
+      KEYCLOAK_URL: 'http://keycloak:8080'
+    ports:
+      - '3000:3000'
+    command: npm run start:dev # Hot reload enabled
+    volumes:
+      - yarn_cache:/root/.yarn/berry/cache
+      - ./src:/usr/src/app/src
+  python-task-score:
+    build: fastapi
+    container_name: python-task-score
+    restart: unless-stopped
+    depends_on:
+      - postgres
+    env_file:
+      - .env
+    environment:
+      MONGO_URI: ${MONGO_URI}
+      MONGO_DATABASE: ${MONGO_DATABASE}
+    command:
+      ['uvicorn', 'main:app', '--host', '0.0.0.0', '--port', '8000', '--reload']
+    ports:
+      - '8000:8000'
 
 volumes:
   keycloak_data:
+  yarn_cache:

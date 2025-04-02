@@ -1,6 +1,12 @@
 import { ObjectId } from 'mongodb';
 import { UserID } from 'src/keycloak/types/user';
-import { Entity, ObjectIdColumn, Column, CreateDateColumn } from 'typeorm';
+import {
+  Entity,
+  ObjectIdColumn,
+  Column,
+  CreateDateColumn,
+  UpdateDateColumn,
+} from 'typeorm';
 
 @Entity('push_tokens')
 export class PushToken {
@@ -15,4 +21,7 @@ export class PushToken {
 
   @CreateDateColumn()
   created_at: Date;
+
+  @UpdateDateColumn()
+  updated_at: Date;
 }

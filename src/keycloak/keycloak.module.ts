@@ -1,7 +1,5 @@
-// src/keycloak/keycloak.module.ts
-
 import { Module } from '@nestjs/common';
-import { ConfigModule } from '@nestjs/config';
+import { ConfigModule, ConfigService } from '@nestjs/config';
 import { APP_GUARD } from '@nestjs/core';
 import {
   AuthGuard,
@@ -15,16 +13,27 @@ import { KeycloakAdminService } from './admin/keycloak-admin.service';
 
 @Module({
   imports: [
-    ConfigModule.forRoot({
-      isGlobal: true,
-    }),
-    KeycloakConnectModule.register({
-      authServerUrl: process.env.KEYCLOAK_URL,
-      realm: process.env.KEYCLOAK_REALM,
-      clientId: process.env.KEYCLOAK_CLIENT_ID,
-      secret: process.env.KEYCLOAK_CLIENT_SECRET!,
-      policyEnforcement: PolicyEnforcementMode.PERMISSIVE,
-      tokenValidation: TokenValidation.OFFLINE,
+    ConfigModule,
+    KeycloakConnectModule.registerAsync({
+      imports: [ConfigModule],
+      inject: [ConfigService],
+      useFactory: (config_service: ConfigService) => ({
+        authServerUrl: config_service.get<string>(
+          'KEYCLOAK_URL',
+          'http://keycloak:8080',
+        ),
+        realm: config_service.get<string>('KEYCLOAK_REALM', 'celia-auth-realm'),
+        clientId: config_service.get<string>(
+          'KEYCLOAK_CLIENT_ID',
+          'celia-auth-client',
+        ),
+        secret: config_service.get<string>(
+          'KEYCLOAK_CLIENT_SECRET',
+          'CQ8w2G4J6c5IzRalVMTunoGl7CpnTI2Z',
+        ),
+        // policyEnforcement: PolicyEnforcementMode.PERMISSIVE,
+        // tokenValidation: TokenValidation.OFFLINE,
+      }),
     }),
   ],
   providers: [

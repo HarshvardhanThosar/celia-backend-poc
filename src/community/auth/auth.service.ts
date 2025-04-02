@@ -1,114 +1,247 @@
-import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
-import { RegisterAuthDTO } from './dto/register-auth.dto';
+import { HttpException, HttpStatus, Injectable, Logger } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import KeycloakAdminClient from '@keycloak/keycloak-admin-client';
+import { RegisterAuthDTO } from './dto/register-auth.dto';
+import { LoginAuthDTO } from './dto/login-auth.dto';
 import { KeycloakAdminService } from 'src/keycloak/admin/keycloak-admin.service';
 import axios from 'axios';
-import { PolicyEnforcementMode, TokenValidation } from 'nest-keycloak-connect';
+import { LogoutAuthDTO } from './dto/logout-auth.dto';
+import { ProfileService } from '../profile/profile.service';
+import { RefreshAuthDTO } from './dto/refresh-auth.dto';
 
 @Injectable()
 export class AuthService {
-  constructor(private readonly keycloakAdminService: KeycloakAdminService) {}
+  private readonly logger = new Logger(AuthService.name);
+
+  constructor(
+    private readonly keycloak_admin_service: KeycloakAdminService,
+    private readonly config_service: ConfigService,
+    private readonly profile_service: ProfileService,
+  ) {}
 
   async register(_register_auth_dto: RegisterAuthDTO) {
     const keycloakAdmin = new KeycloakAdminClient({
-      baseUrl: process.env.KEYCLOAK_URL,
-      realmName: process.env.KEYCLOAK_REALM,
+      baseUrl: this.config_service.get<string>('KEYCLOAK_URL'),
+      realmName: 'master',
     });
+
     try {
       const _response =
-        await this.keycloakAdminService.register(_register_auth_dto);
-      const _user = await keycloakAdmin.users.findOne({
-        realm: process.env.KEYCLOAK_REALM,
-        id: _response.id,
+        await this.keycloak_admin_service.register(_register_auth_dto);
+
+      if (!_response.id) {
+        throw new HttpException(
+          'User created but no ID returned',
+          HttpStatus.BAD_REQUEST,
+        );
+      }
+
+      await keycloakAdmin.auth({
+        grantType: 'password',
+        clientId: 'admin-cli',
+        username: this.config_service.get<string>(
+          'KC_BOOTSTRAP_ADMIN_USERNAME',
+        ),
+        password: this.config_service.get<string>(
+          'KC_BOOTSTRAP_ADMIN_PASSWORD',
+        ),
       });
+
+      let _user;
+
+      for (let i = 0; i < 3; i++) {
+        _user = await keycloakAdmin.users.findOne({
+          realm: this.config_service.get<string>('KEYCLOAK_REALM'),
+          id: _response.id,
+        });
+
+        if (_user) break;
+        await new Promise((resolve) => setTimeout(resolve, 2000));
+      }
+
+      if (!_user) {
+        throw new HttpException(
+          'User not found after creation',
+          HttpStatus.BAD_REQUEST,
+        );
+      }
+
+      await this.profile_service.create_profile(
+        _response.id,
+        _register_auth_dto.tnc_accepted,
+      );
+
       return _user;
     } catch (error) {
-      throw new HttpException(error.message, error.statusCode);
+      this.logger.error(
+        `Keycloak Register Error:`,
+        error.response?.data || error.message,
+      );
+      throw new HttpException(
+        error.message || 'User registration failed',
+        error?.response?.status || 500,
+      );
     }
   }
 
-  async login(username: string, password: string) {
+  async login(_login_auth_dto: LoginAuthDTO) {
+    const { username, password } = _login_auth_dto;
+
     const keycloakAdmin = new KeycloakAdminClient({
-      baseUrl: process.env.KEYCLOAK_URL,
-      realmName: process.env.KEYCLOAK_REALM,
+      baseUrl: this.config_service.get<string>('KEYCLOAK_URL'),
+      realmName: this.config_service.get<string>('KEYCLOAK_REALM'),
     });
+
     try {
       await keycloakAdmin.auth({
         grantType: 'password',
-        clientId: process.env.KEYCLOAK_CLIENT_ID!,
-        clientSecret: process.env.KEYCLOAK_CLIENT_SECRET,
+        clientId: this.config_service.get<string>(
+          'KEYCLOAK_CLIENT_ID',
+          'celia-auth-client',
+        ),
+        clientSecret: this.config_service.get<string>(
+          'KEYCLOAK_CLIENT_SECRET',
+          'CQ8w2G4J6c5IzRalVMTunoGl7CpnTI2Z',
+        ),
         username,
         password,
         scopes: ['openid', 'profile', 'email'],
       });
 
+      // Fetch user details
       const _userList = await keycloakAdmin.users.find({
-        realm: process.env.KEYCLOAK_REALM,
+        realm: this.config_service.get<string>('KEYCLOAK_REALM'),
         username,
       });
-      const _user = _userList.length ? _userList[0] : null;
-      const access_token = keycloakAdmin.accessToken;
-      const refresh_token = keycloakAdmin.refreshToken;
+
+      if (!_userList.length) {
+        throw new HttpException(
+          'User not found in Keycloak',
+          HttpStatus.NOT_FOUND,
+        );
+      }
+
+      const _user = _userList[0];
 
       return {
-        access_token,
-        refresh_token,
+        access_token: keycloakAdmin.accessToken,
+        refresh_token: keycloakAdmin.refreshToken,
         token_type: 'Bearer',
         scope: 'openid profile email',
         user: _user,
       };
     } catch (error) {
+      this.logger.error('Login Error:', error.response?.data || error.message);
+      if (
+        error.response?.status === 401 ||
+        error.response?.data?.error === 'invalid_grant'
+      ) {
+        throw new HttpException(
+          'Invalid username or password',
+          HttpStatus.UNAUTHORIZED,
+        );
+      }
+
       throw new HttpException(
-        `${error.message || JSON.stringify(error.response?.data)}`,
+        error.message || JSON.stringify(error.response?.data),
         error?.response?.status || 500,
       );
     }
   }
 
-  async refresh(refresh_token: string, user?: any) {
+  async refresh(_refresh_auth_dto: RefreshAuthDTO) {
     const keycloakAdmin = new KeycloakAdminClient({
-      baseUrl: process.env.KEYCLOAK_URL,
-      realmName: process.env.KEYCLOAK_REALM,
+      baseUrl: this.config_service.get<string>('KEYCLOAK_URL'),
+      realmName: this.config_service.get<string>('KEYCLOAK_REALM'),
     });
+
     try {
       await keycloakAdmin.auth({
         grantType: 'refresh_token',
-        clientId: process.env.KEYCLOAK_CLIENT_ID!,
-        clientSecret: process.env.KEYCLOAK_CLIENT_SECRET,
-        refreshToken: refresh_token,
+        clientId: this.config_service.get<string>(
+          'KEYCLOAK_CLIENT_ID',
+          'celia-auth-client',
+        ),
+        clientSecret: this.config_service.get<string>(
+          'KEYCLOAK_CLIENT_SECRET',
+          'CQ8w2G4J6c5IzRalVMTunoGl7CpnTI2Z',
+        ),
+        refreshToken: _refresh_auth_dto.refresh_token,
       });
-      const _access_token = keycloakAdmin.accessToken;
-      const _refresh_token = keycloakAdmin.refreshToken;
+
       return {
-        access_token: _access_token,
-        refresh_token: _refresh_token,
+        access_token: keycloakAdmin.accessToken,
+        refresh_token: keycloakAdmin.refreshToken,
         token_type: 'Bearer',
         scope: 'openid profile email',
-        user,
       };
     } catch (error) {
+      this.logger.error(
+        'Refresh Token Error:',
+        error.response?.data || error.message,
+      );
+
+      // Handle specific token errors
+      if (error.response?.status === 400) {
+        if (error.response.data?.error === 'invalid_grant') {
+          throw new HttpException(
+            'Refresh token expired or invalid',
+            HttpStatus.UNAUTHORIZED,
+          );
+        }
+      }
+
       throw new HttpException(
-        `${error.message || JSON.stringify(error.response?.data)}`,
+        error.message || JSON.stringify(error.response?.data),
         error?.response?.status || 500,
       );
     }
   }
 
-  async logout(refresh_token: string) {
-    const logoutUrl = `${process.env.KEYCLOAK_URL}/realms/${process.env.KEYCLOAK_REALM}/protocol/openid-connect/logout`;
+  async logout(_log_out_dto: LogoutAuthDTO) {
+    const { refresh_token } = _log_out_dto;
+    const logoutUrl = `${this.config_service.get<string>('KEYCLOAK_URL')}/realms/${this.config_service.get<string>('KEYCLOAK_REALM')}/protocol/openid-connect/logout`;
 
     const params = new URLSearchParams();
-    params.append('client_id', process.env.KEYCLOAK_CLIENT_ID!);
-    params.append('client_secret', process.env.KEYCLOAK_CLIENT_SECRET!);
+    params.append(
+      'client_id',
+      this.config_service.get<string>(
+        'KEYCLOAK_CLIENT_ID',
+        'celia-auth-client',
+      ),
+    );
+    params.append(
+      'client_secret',
+      this.config_service.get<string>(
+        'KEYCLOAK_CLIENT_SECRET',
+        'CQ8w2G4J6c5IzRalVMTunoGl7CpnTI2Z',
+      ),
+    );
     params.append('refresh_token', refresh_token);
+
     try {
       const response = await axios.post(logoutUrl, params, {
         headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
       });
 
-      return { message: 'User logged out successfully', data: response.data };
+      if (response.status === 204) {
+        return { message: 'User logged out successfully' };
+      }
+
+      return { message: 'Logout response received', data: response.data };
     } catch (error) {
-      console.error('Logout error:', error.response?.data || error.message);
+      this.logger.error('Logout error:', error.response?.data || error.message);
+
+      if (
+        error.response?.status === 400 &&
+        error.response?.data?.error === 'invalid_token'
+      ) {
+        throw new HttpException(
+          'Refresh token is invalid or expired',
+          HttpStatus.BAD_REQUEST,
+        );
+      }
+
       throw new HttpException(
         error.response?.data?.error_description || 'Logout failed',
         HttpStatus.BAD_REQUEST,

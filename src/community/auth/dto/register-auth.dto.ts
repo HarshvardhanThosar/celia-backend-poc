@@ -1,4 +1,4 @@
-import { IsString, IsEmail, MinLength } from 'class-validator';
+import { IsString, IsEmail, MinLength, IsBoolean } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 
 export class RegisterAuthDTO {
@@ -24,4 +24,10 @@ export class RegisterAuthDTO {
   @IsString()
   @MinLength(6)
   password: string;
+
+  @ApiProperty({
+    description: 'Consent if the user accepts the terms and conditions',
+  })
+  @IsBoolean()
+  tnc_accepted: boolean;
 }

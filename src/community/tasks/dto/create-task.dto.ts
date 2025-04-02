@@ -9,10 +9,11 @@ import {
   Min,
   Max,
   IsArray,
-  Matches,
+  IsEnum,
 } from 'class-validator';
 import { Type } from 'class-transformer';
 import { LocationDTO } from './location.dto';
+import { ScoreAssignmentStatus, TaskPriority } from '../enums/task-status.enum';
 
 export class CreateTaskDTO {
   @ApiProperty({
@@ -83,4 +84,13 @@ export class CreateTaskDTO {
   @IsArray()
   @IsOptional()
   media?: Express.Multer.File[];
+
+  @ApiProperty({
+    description: 'Task priority level',
+    enum: TaskPriority,
+    example: TaskPriority.MEDIUM,
+  })
+  @IsEnum(TaskPriority)
+  @IsOptional()
+  priority?: TaskPriority = TaskPriority.MEDIUM;
 }

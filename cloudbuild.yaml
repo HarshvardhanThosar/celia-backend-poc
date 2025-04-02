@@ -1,0 +1,16 @@
+steps:
+  - name: 'gcr.io/cloud-builders/docker'
+    args: ['compose', '-f', 'docker-compose.yml', 'build']
+    
+  - name: 'gcr.io/cloud-builders/gcloud'
+    entrypoint: bash
+    args:
+      - '-c'
+      - |
+        gcloud compute ssh harshvardhanthosar@instance-20250401-134435 \
+          --zone=us-central1-b \
+          --command="cd /home/harshvardhanthosar/celia-backend-poc && git pull && docker compose up --build -d"
+
+timeout: 1200s
+options:
+  logging: CLOUD_LOGGING_ONLY

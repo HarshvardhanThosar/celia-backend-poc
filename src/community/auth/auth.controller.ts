@@ -26,6 +26,12 @@ export class AuthController {
   @HttpCode(HttpStatus.CREATED)
   @Public()
   async register(@Body() _register_auth_dto: RegisterAuthDTO, @Res() response) {
+    const { tnc_accepted } = _register_auth_dto;
+    if (!tnc_accepted)
+      throw new HttpException(
+        'Cannot register without accepting the terms and conditions.',
+        HttpStatus.BAD_REQUEST,
+      );
     try {
       const _user = await this.auth_service.register(_register_auth_dto);
       return create_response(response, {
@@ -43,10 +49,7 @@ export class AuthController {
   @Public()
   async login(@Body() _login_auth_dto: LoginAuthDTO, @Res() response) {
     try {
-      const _auth = await this.auth_service.login(
-        _login_auth_dto.username,
-        _login_auth_dto.password,
-      );
+      const _auth = await this.auth_service.login(_login_auth_dto);
       return create_response(response, {
         status: HttpStatus.OK,
         message: 'Logged in successfully!',
@@ -60,16 +63,9 @@ export class AuthController {
   @Post('refresh')
   @HttpCode(HttpStatus.OK)
   @ApiBearerAuth()
-  async refresh(
-    @KeycloakUser() user: KeycloakAuthUser,
-    @Body() _refresh_auth_dto: RefreshAuthDTO,
-    @Res() response,
-  ) {
+  async refresh(@Body() _refresh_auth_dto: RefreshAuthDTO, @Res() response) {
     try {
-      const _auth = await this.auth_service.refresh(
-        _refresh_auth_dto.refresh_token,
-        user,
-      );
+      const _auth = await this.auth_service.refresh(_refresh_auth_dto);
       return create_response(response, {
         status: HttpStatus.OK,
         message: 'Token refreshed successfully!',
@@ -83,9 +79,9 @@ export class AuthController {
   @Post('logout')
   @HttpCode(HttpStatus.OK)
   @ApiBearerAuth()
-  async logout(@Body() log_out_dto: LogoutAuthDTO, @Res() response) {
+  async logout(@Body() _log_out_dto: LogoutAuthDTO, @Res() response) {
     try {
-      await this.auth_service.logout(log_out_dto.refresh_token);
+      await this.auth_service.logout(_log_out_dto);
       return create_response(response, {
         status: HttpStatus.OK,
         message: 'User logged out successfully!',

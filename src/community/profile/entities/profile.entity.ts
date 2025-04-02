@@ -12,8 +12,14 @@ export class Profile {
   @ObjectIdColumn()
   _id: ObjectId;
 
+  @Column({ type: 'bool', default: false })
+  tnc_accepted: boolean;
+
   @Column({ default: 0 })
   score: number;
+
+  @Column({ default: 0 })
+  coins: number;
 
   @Column()
   wallet_id: string;
@@ -29,6 +35,16 @@ export class Profile {
 
   @Column({ nullable: true })
   profile_image: string;
+
+  @Column({
+    type: 'json',
+    default: [],
+  })
+  skills: {
+    skill_id: string;
+    skill_name: string;
+    hours: number;
+  }[];
 
   @CreateDateColumn()
   created_at: Date;

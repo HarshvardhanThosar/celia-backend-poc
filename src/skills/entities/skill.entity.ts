@@ -10,11 +10,11 @@ import { ObjectId } from 'mongodb';
 import { SkillStatus } from '../enums/skill-status.enum';
 
 @Entity({ name: 'skills' })
-@Index(['name'], { unique: true })
 export class Skill {
   @ObjectIdColumn()
   _id: ObjectId;
 
+  @Index('IDX_unique_skill_name', { unique: true })
   @Column()
   name: string;
 

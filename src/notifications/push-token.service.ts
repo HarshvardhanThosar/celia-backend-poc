@@ -4,74 +4,62 @@ import { PushToken } from './entities/push-token.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { UserID } from 'src/keycloak/types/user';
+import { NotificationsService } from './notifications.service';
 
 @Injectable()
 export class PushTokenService {
-  //   private expo: Expo;
-
-  //   constructor(
-  //     @InjectRepository(PushToken)
-  //     private readonly pushTokenRepository: Repository<PushToken>,
-  //   ) {
-  //     this.expo = new Expo();
-  //   }
-
-  //   async sendNotificationToUser(user_id: UserID, title: string, body: string) {
-  //     const user_token = await this.pushTokenRepository.findOne({
-  //       where: { user_id },
-  //     });
-
-  //     if (!user_token || !Expo.isExpoPushToken(user_token.push_token)) {
-  //       throw new Error('Invalid or missing push token');
-  //     }
-
-  //     const message = {
-  //       to: user_token.push_token,
-  //       sound: 'default',
-  //       title,
-  //       body,
-  //       data: { user_id },
-  //     };
-
-  //     try {
-  //       const response = await this.expo.sendPushNotificationsAsync([message]);
-  //       console.log('Push notification sent:', response);
-  //       return response;
-  //     } catch (error) {
-  //       console.error('Error sending push notification:', error);
-  //       throw new Error('Failed to send push notification');
-  //     }
-  //   }
-
   constructor(
     @InjectRepository(PushToken)
-    private readonly pushTokenRepository: Repository<PushToken>,
+    private readonly push_token_repository: Repository<PushToken>,
+    private readonly notifications_service: NotificationsService,
   ) {}
-
   async register_push_token(user_id: UserID, push_token: string) {
-    const existingToken = await this.pushTokenRepository.findOne({
+    let existing = await this.push_token_repository.findOne({
       where: { user_id },
     });
 
-    if (existingToken) {
-      existingToken.push_token = push_token; // Update the token if it already exists
-      await this.pushTokenRepository.save(existingToken);
+    let updated = false;
+
+    if (existing) {
+      if (existing.push_token === push_token) {
+        return existing; // No need to send a notification again
+      }
+      existing.push_token = push_token;
+      await this.push_token_repository.save(existing);
+      updated = true;
     } else {
-      const newPushToken = this.pushTokenRepository.create({
+      const new_token = this.push_token_repository.create({
         user_id,
         push_token,
       });
-      await this.pushTokenRepository.save(newPushToken);
+      await this.push_token_repository.save(new_token);
+      updated = true;
     }
 
-    return { message: 'Push token registered successfully!' };
+    if (updated) {
+      // Send notification saying device registered
+      await this.notifications_service.create({
+        push_token,
+        notification_type: 'DEVICE_REGISTERED' as any, // or define enum
+        title: 'Device Registered',
+        body: {
+          message:
+            'Your device has been successfully registered for push notifications.',
+          short_message: 'Device registered!',
+          url: 'celia://profile',
+        },
+        replacable: true,
+      });
+    }
+
+    return existing;
   }
 
   async get_user_push_token(user_id: UserID) {
-    return await this.pushTokenRepository.findOne({ where: { user_id } });
+    return await this.push_token_repository.findOne({ where: { user_id } });
   }
 
   async delete_user_push_token(user_id: UserID) {
-    return await this.pushTokenRepository.delete({ user_id });
+    return await this.push_token_repository.delete({ user_id });
   }
 }

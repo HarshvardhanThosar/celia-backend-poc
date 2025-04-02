@@ -8,7 +8,12 @@ import {
 } from 'typeorm';
 import { ObjectId } from 'mongodb';
 import { TaskType } from 'src/task_types/entities/task_type.entity';
-import { ParticipationStatus, TaskStatus } from '../enums/task-status.enum';
+import {
+  ParticipationStatus,
+  ScoreAssignmentStatus,
+  TaskPriority,
+  TaskStatus,
+} from '../enums/task-status.enum';
 
 @Entity({ name: 'tasks' })
 export class Task {
@@ -28,10 +33,10 @@ export class Task {
   hours_required_per_day: number;
 
   @Column()
-  starts_at: number;
+  starts_at: Date;
 
   @Column()
-  completes_at: number;
+  completes_at: Date;
 
   @ManyToOne(() => TaskType)
   task_type: TaskType;
@@ -42,14 +47,38 @@ export class Task {
   @Column({ nullable: true })
   location?: { latitude: number; longitude: number };
 
-  @Column()
-  min_score: number;
+  @Column({
+    type: 'json',
+    default: [],
+  })
+  score_breakdown: {
+    key: string;
+    label: string;
+    score: number;
+  }[];
 
-  @Column()
-  max_score: number;
+  @Column({ type: 'json', default: {} })
+  daily_attendance_codes: Record<string, string>; // e.g., { "2025-03-23": "8945" }
+
+  @Column({ type: 'json', default: {} })
+  attendance_log: Record<string, string[]>; // e.g., { "2025-03-23": ["user_id_1", "user_id_2"] }
+
+  @Column({
+    type: 'enum',
+    enum: ScoreAssignmentStatus,
+    default: ScoreAssignmentStatus.UNASSIGNED,
+  })
+  score_assignment_status: ScoreAssignmentStatus;
 
   @Column({ type: 'enum', enum: TaskStatus, default: TaskStatus.ACTIVE })
   status: TaskStatus;
+
+  @Column({
+    type: 'enum',
+    enum: TaskPriority,
+    default: TaskPriority.MEDIUM,
+  })
+  priority: TaskPriority;
 
   @Column({
     type: 'json',
@@ -64,6 +93,12 @@ export class Task {
 
   @Column({ type: 'json', default: [] })
   media?: string[];
+
+  @Column({ type: 'int', nullable: true })
+  rating?: number;
+
+  @Column({ type: 'text', nullable: true })
+  feedback_note?: string;
 
   @CreateDateColumn()
   created_at: Date;

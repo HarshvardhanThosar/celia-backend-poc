@@ -1,0 +1,23 @@
+# docker-compose.override.yml
+services:
+  keycloak:
+    command:
+      [
+        'start-dev',
+        '--log-level=info',
+        '--cache=local',
+        '--hostname=localhost',
+        '--hostname-strict=false',
+      ]
+    ports:
+      - '8080:8080'
+
+  poc-server:
+    environment:
+      KEYCLOAK_URL: 'http://keycloak:8080'
+    ports:
+      - '3000:3000'
+
+  python-task-score:
+    ports:
+      - '8000:8000'
