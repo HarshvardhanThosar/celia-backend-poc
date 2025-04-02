@@ -41,9 +41,6 @@ services:
         '--hostname-url=https://auth.celia.run.place',
         '--hostname-strict=false',
         '--hostname-strict-https=false',
-        '--spi-theme-cache-themes=false',
-        '--spi-theme-static-max-age=-1',
-        '--spi-theme-cache-templates=false',
       ]
 
   poc-server:

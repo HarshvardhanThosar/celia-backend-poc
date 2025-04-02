@@ -28,7 +28,7 @@ export class AttendanceService {
   /**
    * CRON job to run daily at midnight to distribute rewards
    */
-  @Cron(CronExpression.EVERY_10_SECONDS)
+  @Cron(CronExpression.EVERY_DAY_AT_MIDNIGHT)
   async handle_task_completion_and_rewards() {
     const today = new Date();
 
