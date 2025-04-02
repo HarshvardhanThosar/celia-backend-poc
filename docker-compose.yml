@@ -39,7 +39,6 @@ services:
         '--log-level=info',
         '--hostname=auth.celia.run.place',
         '--hostname-strict=false',
-        '--hostname-strict-https=false',
       ]
 
   poc-server:
