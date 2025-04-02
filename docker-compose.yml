@@ -62,8 +62,7 @@ services:
     command: npm run start:dev # Hot reload enabled
     volumes:
       - yarn_cache:/root/.yarn/berry/cache
-      - .:/usr/src/app
-
+      - ./src:/usr/src/app/src
   python-task-score:
     build: fastapi
     container_name: python-task-score
