@@ -31,7 +31,7 @@ services:
       KC_BOOTSTRAP_ADMIN_PASSWORD: ${KC_BOOTSTRAP_ADMIN_PASSWORD}
       KEYCLOAK_ADMIN: admin
       KEYCLOAK_ADMIN_PASSWORD: admin
-      KC_PROXY: edge
+      # KC_PROXY: edge
     ports:
       - '${KEYCLOAK_PORT}:8080'
     command:
@@ -39,7 +39,7 @@ services:
         'start-dev',
         '--log-level=info',
         '--cache=local',
-        '--hostname=auth.celia.run.place',
+        # '--hostname=auth.celia.run.place',
         '--hostname-strict=false',
         '--hostname-port-stripping=true'
       ]

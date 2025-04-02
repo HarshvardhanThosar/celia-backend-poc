@@ -3,14 +3,14 @@ services:
   keycloak:
     environment:
       KC_PROXY_HEADERS: xforwarded
-      KC_PROXY: edge
-      KC_HOSTNAME: auth.celia.run.place
+      # KC_PROXY: edge
+      # KC_HOSTNAME: auth.celia.run.place
     command:
       [
         'start-dev',
         '--log-level=info',
         '--cache=local',
-        '--hostname=auth.celia.run.place',
+        # '--hostname=auth.celia.run.place',
         '--hostname-strict=false',
         '--hostname-port-stripping=true'
       ]
